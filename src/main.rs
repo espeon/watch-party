@@ -144,5 +144,7 @@ async fn main() {
         .ok()
         .and_then(|s| s.parse::<u16>().ok())
         .unwrap_or(3000);
+
+    println!("Listening at http://{}:{} ...", &host, &port);
     warb::serve(routes).run((host, port)).await;
 }

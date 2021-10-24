@@ -136,7 +136,7 @@ async fn main() {
         .or(warb::path::end().and(warb::fs::file("frontend/index.html")))
         .or(warb::fs::dir("frontend"));
 
-    let host = std::env::var("HOST")
+    let ip = std::env::var("IP")
         .ok()
         .and_then(|s| s.parse::<IpAddr>().ok())
         .unwrap_or_else(|| [127, 0, 0, 1].into());
@@ -145,6 +145,6 @@ async fn main() {
         .and_then(|s| s.parse::<u16>().ok())
         .unwrap_or(3000);
 
-    println!("Listening at http://{}:{} ...", &host, &port);
-    warb::serve(routes).run((host, port)).await;
+    println!("Listening at http://{}:{} ...", &ip, &port);
+    warb::serve(routes).run((ip, port)).await;
 }

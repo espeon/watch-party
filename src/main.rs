@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Mutex};
+use std::{collections::HashMap, net::IpAddr, sync::Mutex};
 
 use once_cell::sync::Lazy;
 use serde_json::json;
@@ -136,5 +136,13 @@ async fn main() {
         .or(warb::path::end().and(warb::fs::file("frontend/index.html")))
         .or(warb::fs::dir("frontend"));
 
-    warb::serve(routes).run(([127, 0, 0, 1], 3000)).await;
+    let host = std::env::var("HOST")
+        .ok()
+        .and_then(|s| s.parse::<IpAddr>().ok())
+        .unwrap_or_else(|| [127, 0, 0, 1].into());
+    let port = std::env::var("PORT")
+        .ok()
+        .and_then(|s| s.parse::<u16>().ok())
+        .unwrap_or(3000);
+    warb::serve(routes).run((host, port)).await;
 }

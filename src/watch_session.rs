@@ -1,5 +1,9 @@
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use std::time::Instant;
+use std::{collections::HashMap, sync::Mutex, time::Instant};
+use uuid::Uuid;
+
+use crate::events::WatchEvent;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SubtitleTrack {
@@ -15,7 +19,6 @@ pub struct WatchSession {
     is_playing: bool,
     playing_from_timestamp: u64,
     playing_from_instant: Instant,
-    // TODO: How do we keep track of the current playing time ?
 }
 
 #[derive(Serialize)]
@@ -59,8 +62,29 @@ impl WatchSession {
         self.playing_from_instant = Instant::now();
     }
 
-    pub fn set_playing(&mut self, playing: bool) {
-        self.set_time_ms(self.get_time_ms());
+    pub fn set_playing(&mut self, playing: bool, time_ms: u64) {
+        self.set_time_ms(time_ms);
         self.is_playing = playing;
     }
+}
+
+pub static SESSIONS: Lazy<Mutex<HashMap<Uuid, WatchSession>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
+
+pub fn get_session(uuid: Uuid) -> Option<WatchSession> {
+    SESSIONS.lock().unwrap().get(&uuid).cloned()
+}
+
+pub fn handle_watch_event(uuid: Uuid, watch_session: &mut WatchSession, event: WatchEvent) {
+    match event {
+        WatchEvent::SetPlaying { playing, time } => {
+            watch_session.set_playing(playing, time);
+        }
+
+        WatchEvent::SetTime(time) => {
+            watch_session.set_time_ms(time);
+        }
+    };
+
+    let _ = SESSIONS.lock().unwrap().insert(uuid, watch_session.clone());
 }

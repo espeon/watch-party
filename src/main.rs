@@ -1,24 +1,21 @@
-use std::{collections::HashMap, net::IpAddr, sync::Mutex};
-
-use once_cell::sync::Lazy;
 use serde_json::json;
+use std::net::IpAddr;
 use uuid::Uuid;
 
 use warb::{hyper::StatusCode, Filter, Reply};
 use warp as warb; // i think it's funny
 
 mod events;
+mod viewer_connection;
 mod watch_session;
 
 use serde::Deserialize;
 
 use crate::{
-    events::{ws_publish, ws_subscribe, WatchEvent},
-    watch_session::{SubtitleTrack, WatchSession},
+    events::WatchEvent,
+    viewer_connection::{ws_publish, ws_subscribe},
+    watch_session::{get_session, handle_watch_event, SubtitleTrack, WatchSession, SESSIONS},
 };
-
-static SESSIONS: Lazy<Mutex<HashMap<Uuid, WatchSession>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
 
 #[derive(Deserialize)]
 struct StartSessionBody {
@@ -52,14 +49,14 @@ async fn main() {
         .and(warb::path::param::<String>())
         .map(|session_id: String| {
             if let Ok(uuid) = Uuid::parse_str(&session_id) {
-                if let Some(session) = SESSIONS.lock().unwrap().get(&uuid) {
-                    RequestedSession::Session(uuid, session.clone())
-                } else {
-                    RequestedSession::Error(warb::reply::with_status(
-                        warb::reply::json(&json!({ "error": "session does not exist" })),
-                        StatusCode::NOT_FOUND,
-                    ))
-                }
+                get_session(uuid)
+                    .map(|sess| RequestedSession::Session(uuid, sess))
+                    .unwrap_or_else(|| {
+                        RequestedSession::Error(warb::reply::with_status(
+                            warb::reply::json(&json!({ "error": "session does not exist" })),
+                            StatusCode::NOT_FOUND,
+                        ))
+                    })
             } else {
                 RequestedSession::Error(warb::reply::with_status(
                     warb::reply::json(&json!({ "error": "invalid session UUID" })),
@@ -83,13 +80,13 @@ async fn main() {
         .and(warb::body::json())
         .map(|requested_session, playing: bool| match requested_session {
             RequestedSession::Session(uuid, mut sess) => {
-                sess.set_playing(playing);
-                let time = sess.get_time_ms();
-                SESSIONS.lock().unwrap().insert(uuid, sess.clone());
+                let event = WatchEvent::SetPlaying {
+                    playing,
+                    time: sess.get_time_ms(),
+                };
 
-                tokio::spawn(async move {
-                    ws_publish(uuid, WatchEvent::SetPlaying { playing, time }).await
-                });
+                handle_watch_event(uuid, &mut sess, event.clone());
+                tokio::spawn(ws_publish(uuid, None, event));
 
                 warb::reply::with_status(warb::reply::json(&sess.view()), StatusCode::OK)
             }
@@ -103,12 +100,10 @@ async fn main() {
         .map(
             |requested_session, current_time_ms: u64| match requested_session {
                 RequestedSession::Session(uuid, mut sess) => {
-                    sess.set_time_ms(current_time_ms);
-                    SESSIONS.lock().unwrap().insert(uuid, sess.clone());
+                    let event = WatchEvent::SetTime(current_time_ms);
 
-                    tokio::spawn(async move {
-                        ws_publish(uuid, WatchEvent::SetTime(current_time_ms)).await
-                    });
+                    handle_watch_event(uuid, &mut sess, event.clone());
+                    tokio::spawn(ws_publish(uuid, None, event));
 
                     warb::reply::with_status(warb::reply::json(&sess.view()), StatusCode::OK)
                 }

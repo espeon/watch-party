@@ -32,6 +32,9 @@ const createVideoElement = (videoUrl, subtitles) => {
   return video;
 }
 
+let outgoingDebounce = false;
+let outgoingDebounceCallbackId = null;
+
 /**
  * @param {WebSocket} socket
  * @param {HTMLVideoElement} video
@@ -49,6 +52,8 @@ const setupSocketEvents = (socket, video) => {
     try {
       const event = JSON.parse(messageEvent.data);
       console.log(event);
+
+      outgoingDebounce = true;
 
       switch (event.op) {
         case "SetPlaying":
@@ -68,6 +73,70 @@ const setupSocketEvents = (socket, video) => {
       }
     } catch (_err) {
     }
+
+    if (outgoingDebounceCallbackId) {
+      cancelIdleCallback(outgoingDebounceCallbackId);
+      outgoingDebounceCallbackId = null;
+    }
+
+    outgoingDebounceCallbackId = setTimeout(() => {
+      outgoingDebounce = false;
+    }, 500);
+  });
+}
+
+/**
+ * @param {string} sessionId
+ * @param {HTMLVideoElement} video
+ * @param {WebSocket} socket
+ */
+const setupVideoEvents = (sessionId, video, socket) => {
+  const currentVideoTime = () => (video.currentTime * 1000) | 0;
+
+  video.addEventListener("pause", async event => {
+    if (outgoingDebounce) {
+      return;
+    }
+
+    socket.send(JSON.stringify({
+      "op": "SetPlaying",
+      "data": {
+        "playing": false,
+        "time": currentVideoTime(),
+      }
+    }));
+  });
+
+  video.addEventListener("play", event => {
+    if (outgoingDebounce) {
+      return;
+    }
+
+    socket.send(JSON.stringify({
+      "op": "SetPlaying",
+      "data": {
+        "playing": true,
+        "time": currentVideoTime(),
+      }
+    }));
+  });
+
+  let firstSeekComplete = false;
+  video.addEventListener("seeked", async event => {
+    if (!firstSeekComplete) {
+      // The first seeked event is performed by the browser when the video is loading
+      firstSeekComplete = true;
+      return;
+    }
+
+    if (outgoingDebounce) {
+      return;
+    }
+
+    socket.send(JSON.stringify({
+      "op": "SetTime",
+      "data": currentVideoTime(),
+    }));
   });
 }
 
@@ -94,44 +163,8 @@ const setupVideo = async (sessionId, videoUrl, subtitles, currentTime, playing, 
     // Auto-play is probably disabled, we should uhhhhhhh do something about it
   }
 
-  video.addEventListener("pause", async event => {
-    await fetch(`/sess/${sessionId}/playing`, {
-      method: "PUT",
-      body: JSON.stringify(false),
-      headers: {
-        "Content-Type": "application/json"
-      },
-    });
-  });
-
-  video.addEventListener("play", async event => {
-    await fetch(`/sess/${sessionId}/playing`, {
-      method: "PUT",
-      body: JSON.stringify(true),
-      headers: {
-        "Content-Type": "application/json"
-      },
-    });
-  });
-
-  let firstSeekComplete = false;
-  video.addEventListener("seeked", async event => {
-    if (!firstSeekComplete) {
-      // The first seeked event is performed by the browser when the video is loading
-      firstSeekComplete = true;
-      return;
-    }
-
-    await fetch(`/sess/${sessionId}/current_time`, {
-      method: "PUT",
-      body: JSON.stringify((video.currentTime * 1000) | 0),
-      headers: {
-        "Content-Type": "application/json"
-      },
-    });
-  });
-
   setupSocketEvents(socket, video);
+  setupVideoEvents(sessionId, video, socket);
 }
 
 /** @param {string} sessionId */

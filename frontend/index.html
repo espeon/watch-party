@@ -16,6 +16,14 @@
       <form id="join-session-form">
         <h2>Join a session</h2>
 
+        <label for="nickname">Nickname:</label>
+        <input
+          type="text"
+          id="join-session-nickname"
+          placeholder="Nickname"
+          required
+        />
+
         <label for="session-id">Session ID:</label>
         <input
           type="text"
@@ -30,6 +38,9 @@
         No session to join? <a href="/create.html">Create a session</a> instead.
       </p>
     </div>
+
+    <div id="video-container"></div>
+    <div id="chatbox-container"></div>
 
     <script src="/main.js"></script>
   </body>

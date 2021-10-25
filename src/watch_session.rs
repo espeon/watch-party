@@ -84,6 +84,8 @@ pub fn handle_watch_event(uuid: Uuid, watch_session: &mut WatchSession, event: W
         WatchEvent::SetTime(time) => {
             watch_session.set_time_ms(time);
         }
+
+        _ => {}
     };
 
     let _ = SESSIONS.lock().unwrap().insert(uuid, watch_session.clone());

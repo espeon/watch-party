@@ -29,7 +29,7 @@ pub struct ConnectedViewer {
     pub tx: UnboundedSender<WatchEvent>,
 }
 
-pub async fn ws_subscribe(session_uuid: Uuid, ws: WebSocket) {
+pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, ws: WebSocket) {
     let viewer_id = NEXT_VIEWER_ID.fetch_add(1, Ordering::Relaxed);
     let (mut viewer_ws_tx, mut viewer_ws_rx) = ws.split();
 
@@ -56,8 +56,10 @@ pub async fn ws_subscribe(session_uuid: Uuid, ws: WebSocket) {
         },
     );
 
+    ws_publish(session_uuid, None, WatchEvent::UserJoin(nickname.clone())).await;
+
     while let Some(Ok(message)) = viewer_ws_rx.next().await {
-        let event: WatchEvent = match message
+        let mut event: WatchEvent = match message
             .to_str()
             .ok()
             .and_then(|s| serde_json::from_str(s).ok())
@@ -65,6 +67,23 @@ pub async fn ws_subscribe(session_uuid: Uuid, ws: WebSocket) {
             Some(e) => e,
             None => continue,
         };
+
+        // Make sure people don't spoof their nicknames to pretend to be others
+        // If a nickname change is required, I guess reconnect idk
+        if let WatchEvent::ChatMessage { user: _, message } = event {
+            event = WatchEvent::ChatMessage {
+                user: nickname.clone(),
+                message,
+            };
+
+            // Don't pass through the viewer_id because we want the chat message
+            // to be reflected to the user.
+            ws_publish(session_uuid, None, event).await;
+
+            // We don't need to handle() chat messages,
+            // and we are already publishing them ourselves.
+            continue;
+        }
 
         handle_watch_event(
             session_uuid,
@@ -74,6 +93,8 @@ pub async fn ws_subscribe(session_uuid: Uuid, ws: WebSocket) {
 
         ws_publish(session_uuid, Some(viewer_id), event).await;
     }
+
+    ws_publish(session_uuid, None, WatchEvent::UserLeave(nickname.clone())).await;
 
     CONNECTED_VIEWERS.write().await.remove(&viewer_id);
 }

@@ -3,8 +3,6 @@
  * @param {{name: string, url: string}[]} subtitles
  */
 const createVideoElement = (videoUrl, subtitles) => {
-  document.querySelector("#pre-join-controls").style["display"] = "none";
-
   const video = document.createElement("video");
   video.controls = true;
   video.autoplay = false;
@@ -35,6 +33,19 @@ const createVideoElement = (videoUrl, subtitles) => {
 let outgoingDebounce = false;
 let outgoingDebounceCallbackId = null;
 
+const setDebounce = () => {
+  outgoingDebounce = true;
+
+  if (outgoingDebounceCallbackId) {
+    cancelIdleCallback(outgoingDebounceCallbackId);
+    outgoingDebounceCallbackId = null;
+  }
+
+  outgoingDebounceCallbackId = setTimeout(() => {
+    outgoingDebounce = false;
+  }, 500);
+}
+
 /**
  * @param {WebSocket} socket
  * @param {HTMLVideoElement} video
@@ -53,10 +64,10 @@ const setupSocketEvents = (socket, video) => {
       const event = JSON.parse(messageEvent.data);
       console.log(event);
 
-      outgoingDebounce = true;
-
       switch (event.op) {
         case "SetPlaying":
+          setDebounce();
+
           if (event.data.playing) {
             await video.play();
           } else {
@@ -67,21 +78,15 @@ const setupSocketEvents = (socket, video) => {
 
           break;
         case "SetTime":
+          setDebounce();
           setVideoTime(event.data);
 
           break;
+
+        // TODO: UserJoin, UserLeave, ChatMessage
       }
     } catch (_err) {
     }
-
-    if (outgoingDebounceCallbackId) {
-      cancelIdleCallback(outgoingDebounceCallbackId);
-      outgoingDebounceCallbackId = null;
-    }
-
-    outgoingDebounceCallbackId = setTimeout(() => {
-      outgoingDebounce = false;
-    }, 500);
   });
 }
 
@@ -148,8 +153,9 @@ const setupVideoEvents = (sessionId, video, socket) => {
  * @param {WebSocket} socket
  */
 const setupVideo = async (sessionId, videoUrl, subtitles, currentTime, playing, socket) => {
+  document.querySelector("#pre-join-controls").style["display"] = "none";
   const video = createVideoElement(videoUrl, subtitles);
-  document.body.appendChild(video);
+  document.querySelector("#video-container").appendChild(video);
 
   video.currentTime = (currentTime / 1000.0);
 
@@ -167,8 +173,20 @@ const setupVideo = async (sessionId, videoUrl, subtitles, currentTime, playing, 
   setupVideoEvents(sessionId, video, socket);
 }
 
-/** @param {string} sessionId */
-const joinSession = async (sessionId) => {
+/**
+ * @param {string} sessionId
+ * @param {WebSocket} socket
+ */
+const setupChat = async (sessionId, socket) => {
+  document.querySelector("#chatbox-container").style["display"] = "initial";
+  // TODO
+}
+
+/** 
+ * @param {string} nickname
+ * @param {string} sessionId
+ */
+const joinSession = async (nickname, sessionId) => {
   try {
     window.location.hash = sessionId;
 
@@ -177,11 +195,14 @@ const joinSession = async (sessionId) => {
       current_time_ms, is_playing
     } = await fetch(`/sess/${sessionId}`).then(r => r.json());
 
-    const wsUrl = new URL(`/sess/${sessionId}/subscribe`, window.location.href);
+    const wsUrl = new URL(`/sess/${sessionId}/subscribe?nickname=${encodeURIComponent(nickname)}`, window.location.href);
     wsUrl.protocol = { "http:": "ws:", "https:": "wss:" }[wsUrl.protocol];
     const socket = new WebSocket(wsUrl.toString());
 
-    setupVideo(sessionId, video_url, subtitle_tracks, current_time_ms, is_playing, socket);
+    socket.addEventListener("open", () => {
+      setupVideo(sessionId, video_url, subtitle_tracks, current_time_ms, is_playing, socket);
+      setupChat(sessionId, socket);
+    });
   } catch (err) {
     // TODO: Show an error on the screen
     console.error(err);
@@ -189,11 +210,16 @@ const joinSession = async (sessionId) => {
 }
 
 const main = () => {
+  document.querySelector("#join-session-nickname").value = localStorage.getItem("watch-party-nickname");
+
   document.querySelector("#join-session-form").addEventListener("submit", event => {
     event.preventDefault();
 
+    const nickname = document.querySelector("#join-session-nickname").value;
     const sessionId = document.querySelector("#join-session-id").value;
-    joinSession(sessionId);
+
+    localStorage.setItem("watch-party-nickname", nickname);
+    joinSession(nickname, sessionId);
   });
 
   if (window.location.hash.match(/#[0-9a-f\-]+/)) {

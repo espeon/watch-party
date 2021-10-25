@@ -19,9 +19,14 @@ use crate::{
 
 #[derive(Deserialize)]
 struct StartSessionBody {
-    pub video_url: String,
+    video_url: String,
     #[serde(default = "Vec::new")]
-    pub subtitle_tracks: Vec<SubtitleTrack>,
+    subtitle_tracks: Vec<SubtitleTrack>,
+}
+
+#[derive(Deserialize)]
+struct SubscribeQuery {
+    nickname: String,
 }
 
 #[tokio::main]
@@ -112,12 +117,13 @@ async fn main() {
         );
 
     let ws_subscribe_route = get_running_session
-        .and(warp::path!("subscribe"))
-        .and(warp::ws())
+        .and(warb::path!("subscribe"))
+        .and(warb::query())
+        .and(warb::ws())
         .map(
-            |requested_session, ws: warb::ws::Ws| match requested_session {
+            |requested_session, query: SubscribeQuery, ws: warb::ws::Ws| match requested_session {
                 RequestedSession::Session(uuid, _) => ws
-                    .on_upgrade(move |ws| ws_subscribe(uuid, ws))
+                    .on_upgrade(move |ws| ws_subscribe(uuid, query.nickname, ws))
                     .into_response(),
                 RequestedSession::Error(error_response) => error_response.into_response(),
             },

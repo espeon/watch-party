@@ -9,6 +9,15 @@ html {
   color: var(--fg);
   font-size: 1.125rem;
   font-family: sans-serif;
+
+  overflow-y: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
 }
 
 html,
@@ -17,8 +26,13 @@ body {
 }
 
 video {
+  display: block;
+
   width: 100vw;
   height: auto;
+
+  max-width: auto;
+  max-height: 100vh;
 }
 
 a {
@@ -98,4 +112,8 @@ button.small-button {
 
 #join-session-form {
   margin-bottom: 4em;
+}
+
+#chatbox-container {
+  display: none;
 }

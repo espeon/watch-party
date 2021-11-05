@@ -6,6 +6,7 @@ const createVideoElement = (videoUrl, subtitles) => {
   const video = document.createElement("video");
   video.controls = true;
   video.autoplay = false;
+  video.crossOrigin = "anonymous";
 
   const source = document.createElement("source");
   source.src = videoUrl;

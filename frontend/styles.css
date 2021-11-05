@@ -118,7 +118,8 @@ button.small-button {
   display: none;
 }
 
-.user-join {
+.user-join,
+.user-leave {
   font-style: italic;
 }
 

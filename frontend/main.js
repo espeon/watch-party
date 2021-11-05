@@ -253,14 +253,16 @@ const setupChatboxEvents = (socket) => {
 
     const input = chatForm.querySelector("input");
     const content = input.value;
-    input.value = "";
+    if (content.trim().length) {
+      input.value = "";
 
-    socket.send(JSON.stringify({
-      "op": "ChatMessage",
-      "data": {
-        "message": content,
-      }
-    }));
+      socket.send(JSON.stringify({
+        "op": "ChatMessage",
+        "data": {
+          "message": content,
+        }
+      }));
+    }
   });
 }
 

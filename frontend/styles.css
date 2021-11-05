@@ -117,3 +117,30 @@ button.small-button {
 #chatbox-container {
   display: none;
 }
+
+.user-join {
+  font-style: italic;
+}
+
+.chat-message > strong {
+  color: rgb(126, 208, 255);
+}
+
+#chatbox {
+  padding: 0.5em 2em;
+  min-height: 8em;
+  overflow-y: scroll;
+}
+
+#chatbox-container {
+  background-color: #222;
+}
+
+#chatbox-send {
+  padding: 0 2em;
+  padding-bottom: 0.5em;
+}
+
+#chatbox-send > input {
+  font-size: 0.75em;
+}

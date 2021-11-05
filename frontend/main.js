@@ -46,6 +46,60 @@ const setDebounce = () => {
   }, 500);
 }
 
+const clearChat = () => {
+  document.querySelector("#chatbox").innerHTML = "";
+}
+
+const printToChat = (elem) => {
+  const chatbox = document.querySelector("#chatbox");
+  chatbox.appendChild(elem);
+  chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+const handleChatEvent = (event) => {
+  switch (event.op) {
+    case "UserJoin": {
+      // print something to the chat
+      const chatMessage = document.createElement("div");
+      chatMessage.classList.add("chat-message");
+      chatMessage.classList.add("user-join");
+      const userName = document.createElement("strong");
+      userName.textContent = event.data;
+      chatMessage.appendChild(userName);
+      chatMessage.appendChild(document.createTextNode(" joined"));
+      printToChat(chatMessage);
+
+      break;
+    }
+    case "UserLeave": {
+      const chatMessage = document.createElement("div");
+      chatMessage.classList.add("chat-message");
+      chatMessage.classList.add("user-leave");
+      const userName = document.createElement("strong");
+      userName.textContent = event.data;
+      chatMessage.appendChild(userName);
+      chatMessage.appendChild(document.createTextNode(" left"));
+      printToChat(chatMessage);
+
+      break;
+    }
+    case "ChatMessage": {
+      const chatMessage = document.createElement("div");
+      chatMessage.classList.add("chat-message");
+      const userName = document.createElement("strong");
+      userName.innerText = event.data.user;
+      chatMessage.appendChild(userName);
+      chatMessage.appendChild(document.createTextNode(" "));
+      const messageContent = document.createElement("span");
+      messageContent.classList.add("message-content");
+      messageContent.textContent = event.data.message;
+      chatMessage.appendChild(messageContent);
+      printToChat(chatMessage);
+      break;
+    }
+  }
+}
+
 /**
  * @param {WebSocket} socket
  * @param {HTMLVideoElement} video
@@ -80,10 +134,12 @@ const setupSocketEvents = (socket, video) => {
         case "SetTime":
           setDebounce();
           setVideoTime(event.data);
-
           break;
-
-        // TODO: UserJoin, UserLeave, ChatMessage
+        case "UserJoin":
+        case "UserLeave":
+        case "ChatMessage":
+          handleChatEvent(event);
+          break;
       }
     } catch (_err) {
     }
@@ -173,13 +229,48 @@ const setupVideo = async (sessionId, videoUrl, subtitles, currentTime, playing, 
   setupVideoEvents(sessionId, video, socket);
 }
 
+const fixChatSize = () => {
+  const video = document.querySelector("video");
+  const chatbox = document.querySelector("#chatbox");
+  const chatboxContainer = document.querySelector("#chatbox-container");
+
+  if (video && chatbox && chatboxContainer) {
+    const delta = chatboxContainer.clientHeight - chatbox.clientHeight;
+
+    chatbox.style["height"] = `calc(${(window.innerHeight - video.clientHeight)}px - ${delta}px - 1em)`;
+  }
+};
+
+const setupChatboxEvents = (socket) => {
+  // clear events by just reconstructing the form
+  const oldChatForm = document.querySelector("#chatbox-send");
+  const chatForm = oldChatForm.cloneNode(true);
+  oldChatForm.replaceWith(chatForm);
+
+  chatForm.addEventListener("submit", e => {
+    e.preventDefault();
+
+    const input = chatForm.querySelector("input");
+    const content = input.value;
+    input.value = "";
+
+    socket.send(JSON.stringify({
+      "op": "ChatMessage",
+      "data": {
+        "message": content,
+      }
+    }));
+  });
+}
+
 /**
  * @param {string} sessionId
  * @param {WebSocket} socket
  */
 const setupChat = async (sessionId, socket) => {
-  document.querySelector("#chatbox-container").style["display"] = "initial";
-  // TODO
+  document.querySelector("#chatbox-container").style["display"] = "block";
+  setupChatboxEvents(socket);
+  fixChatSize();
 }
 
 /** 
@@ -225,6 +316,10 @@ const main = () => {
   if (window.location.hash.match(/#[0-9a-f\-]+/)) {
     document.querySelector("#join-session-id").value = window.location.hash.substring(1);
   }
+
+  window.addEventListener("resize", event => {
+    fixChatSize();
+  });
 };
 
 if (document.readyState === "complete") {

@@ -15,8 +15,8 @@ use uuid::Uuid;
 use warp::ws::{Message, WebSocket};
 
 use crate::{
-    events::WatchEvent,
-    watch_session::{get_session, handle_watch_event},
+    events::{WatchEvent, WatchEventData},
+    watch_session::{get_session, handle_watch_event_data},
 };
 
 static CONNECTED_VIEWERS: Lazy<RwLock<HashMap<usize, ConnectedViewer>>> =
@@ -27,6 +27,7 @@ pub struct ConnectedViewer {
     pub session: Uuid,
     pub viewer_id: usize,
     pub tx: UnboundedSender<WatchEvent>,
+    pub nickname: Option<String>,
 }
 
 pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, ws: WebSocket) {
@@ -53,13 +54,19 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, ws: WebSocket) {
             viewer_id,
             session: session_uuid,
             tx,
+            nickname: Some(nickname.clone()),
         },
     );
 
-    ws_publish(session_uuid, None, WatchEvent::UserJoin(nickname.clone())).await;
+    ws_publish(
+        session_uuid,
+        None,
+        WatchEvent::new(nickname.clone(), WatchEventData::UserJoin),
+    )
+    .await;
 
     while let Some(Ok(message)) = viewer_ws_rx.next().await {
-        let mut event: WatchEvent = match message
+        let event: WatchEventData = match message
             .to_str()
             .ok()
             .and_then(|s| serde_json::from_str(s).ok())
@@ -68,47 +75,39 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, ws: WebSocket) {
             None => continue,
         };
 
-        // Make sure people don't spoof their nicknames to pretend to be others
-        // If a nickname change is required, I guess reconnect idk
-        if let WatchEvent::ChatMessage { user: _, message } = event {
-            event = WatchEvent::ChatMessage {
-                user: nickname.clone(),
-                message,
-            };
-
-            // Don't pass through the viewer_id because we want the chat message
-            // to be reflected to the user.
-            ws_publish(session_uuid, None, event).await;
-
-            // We don't need to handle() chat messages,
-            // and we are already publishing them ourselves.
-            continue;
-        }
-
-        handle_watch_event(
+        handle_watch_event_data(
             session_uuid,
             &mut get_session(session_uuid).unwrap(),
             event.clone(),
         );
 
-        ws_publish(session_uuid, Some(viewer_id), event).await;
+        ws_publish(
+            session_uuid,
+            Some(viewer_id),
+            WatchEvent::new(nickname.clone(), event),
+        )
+        .await;
     }
 
-    ws_publish(session_uuid, None, WatchEvent::UserLeave(nickname.clone())).await;
+    ws_publish(
+        session_uuid,
+        None,
+        WatchEvent::new(nickname.clone(), WatchEventData::UserLeave),
+    )
+    .await;
 
     CONNECTED_VIEWERS.write().await.remove(&viewer_id);
 }
 
-pub async fn ws_publish(session_uuid: Uuid, viewer_id: Option<usize>, event: WatchEvent) {
+pub async fn ws_publish(session_uuid: Uuid, skip_viewer_id: Option<usize>, event: WatchEvent) {
     for viewer in CONNECTED_VIEWERS.read().await.values() {
-        if viewer_id == Some(viewer.viewer_id) {
-            continue;
-        }
-
         if viewer.session != session_uuid {
             continue;
         }
 
-        let _ = viewer.tx.send(event.clone());
+        let _ = viewer.tx.send(WatchEvent {
+            reflected: skip_viewer_id == Some(viewer.viewer_id),
+            ..event.clone()
+        });
     }
 }

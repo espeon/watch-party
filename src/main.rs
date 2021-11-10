@@ -12,9 +12,9 @@ mod watch_session;
 use serde::Deserialize;
 
 use crate::{
-    events::WatchEvent,
+    events::{WatchEvent, WatchEventData},
     viewer_connection::{ws_publish, ws_subscribe},
-    watch_session::{get_session, handle_watch_event, SubtitleTrack, WatchSession, SESSIONS},
+    watch_session::{get_session, handle_watch_event_data, SubtitleTrack, WatchSession, SESSIONS},
 };
 
 #[derive(Deserialize)]
@@ -85,13 +85,21 @@ async fn main() {
         .and(warb::body::json())
         .map(|requested_session, playing: bool| match requested_session {
             RequestedSession::Session(uuid, mut sess) => {
-                let event = WatchEvent::SetPlaying {
+                let data = WatchEventData::SetPlaying {
                     playing,
                     time: sess.get_time_ms(),
                 };
 
-                handle_watch_event(uuid, &mut sess, event.clone());
-                tokio::spawn(ws_publish(uuid, None, event));
+                handle_watch_event_data(uuid, &mut sess, data.clone());
+                tokio::spawn(ws_publish(
+                    uuid,
+                    None,
+                    WatchEvent {
+                        user: None,
+                        data,
+                        reflected: false,
+                    },
+                ));
 
                 warb::reply::with_status(warb::reply::json(&sess.view()), StatusCode::OK)
             }
@@ -105,10 +113,18 @@ async fn main() {
         .map(
             |requested_session, current_time_ms: u64| match requested_session {
                 RequestedSession::Session(uuid, mut sess) => {
-                    let event = WatchEvent::SetTime(current_time_ms);
+                    let data = WatchEventData::SetTime(current_time_ms);
 
-                    handle_watch_event(uuid, &mut sess, event.clone());
-                    tokio::spawn(ws_publish(uuid, None, event));
+                    handle_watch_event_data(uuid, &mut sess, data.clone());
+                    tokio::spawn(ws_publish(
+                        uuid,
+                        None,
+                        WatchEvent {
+                            user: None,
+                            data,
+                            reflected: false,
+                        },
+                    ));
 
                     warb::reply::with_status(warb::reply::json(&sess.view()), StatusCode::OK)
                 }

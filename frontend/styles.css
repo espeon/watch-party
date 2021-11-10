@@ -61,6 +61,7 @@ input[type="text"] {
   font-family: sans-serif;
   font-size: 1em;
   width: 500px;
+  max-width: 100%;
 
   resize: none;
   overflow-x: wrap;
@@ -82,6 +83,7 @@ button {
   font-family: sans-serif;
   font-size: 1em;
   width: 500px;
+  max-width: 100%;
 
   user-select: none;
   border: 1px solid rgba(0, 0, 0, 0);
@@ -118,13 +120,25 @@ button.small-button {
   display: none;
 }
 
-.user-join,
-.user-leave {
+.chat-message > strong {
+  color: rgb(126, 208, 255);
+}
+
+.chat-message.user-join,
+.chat-message.user-leave {
   font-style: italic;
 }
 
-.chat-message > strong {
-  color: rgb(126, 208, 255);
+.chat-message.set-time,
+.chat-message.set-playing {
+  font-style: italic;
+  text-align: right;
+  font-size: 0.85em;
+}
+
+.chat-message.set-time > strong,
+.chat-message.set-playing > strong {
+  color: unset;
 }
 
 #chatbox {
@@ -144,4 +158,30 @@ button.small-button {
 
 #chatbox-send > input {
   font-size: 0.75em;
+  width: 100%;
+}
+
+@media (min-aspect-ratio: 4/3) {
+  #video-container video {
+    width: calc(100vw - 400px);
+    position: absolute;
+    height: 100vh;
+    background-color: black;
+  }
+
+  #video-container {
+    float: left;
+    height: 100vh;
+    position: relative;
+  }
+
+  #chatbox-container {
+    float: right;
+    width: 400px;
+    height: 100vh !important;
+  }
+
+  #chatbox {
+    height: calc(100vh - 5em) !important;
+  }
 }

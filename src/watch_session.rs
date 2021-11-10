@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Mutex, time::Instant};
 use uuid::Uuid;
 
-use crate::events::WatchEvent;
+use crate::events::WatchEventData;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SubtitleTrack {
@@ -75,13 +75,17 @@ pub fn get_session(uuid: Uuid) -> Option<WatchSession> {
     SESSIONS.lock().unwrap().get(&uuid).cloned()
 }
 
-pub fn handle_watch_event(uuid: Uuid, watch_session: &mut WatchSession, event: WatchEvent) {
+pub fn handle_watch_event_data(
+    uuid: Uuid,
+    watch_session: &mut WatchSession,
+    event: WatchEventData,
+) {
     match event {
-        WatchEvent::SetPlaying { playing, time } => {
+        WatchEventData::SetPlaying { playing, time } => {
             watch_session.set_playing(playing, time);
         }
 
-        WatchEvent::SetTime(time) => {
+        WatchEventData::SetTime(time) => {
             watch_session.set_time_ms(time);
         }
 

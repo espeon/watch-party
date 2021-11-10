@@ -1,5 +1,5 @@
-import { setupVideo } from "./video.mjs";
-import { setupChat, handleChatEvent } from "./chat.mjs";
+import { setupVideo } from "./video.mjs?v=2";
+import { setupChat, logEventToChat } from "./chat.mjs?v=2";
 
 /**
  * @param {string} sessionId
@@ -50,31 +50,29 @@ const setupIncomingEvents = (video, socket) => {
   socket.addEventListener("message", async (messageEvent) => {
     try {
       const event = JSON.parse(messageEvent.data);
-      // console.log(event);
 
-      switch (event.op) {
-        case "SetPlaying":
-          setDebounce();
+      if (!event.reflected) {
+        switch (event.op) {
+          case "SetPlaying":
+            setDebounce();
 
-          if (event.data.playing) {
-            await video.play();
-          } else {
-            video.pause();
-          }
+            if (event.data.playing) {
+              await video.play();
+            } else {
+              video.pause();
+            }
 
-          setVideoTime(event.data.time);
+            setVideoTime(event.data.time);
 
-          break;
-        case "SetTime":
-          setDebounce();
-          setVideoTime(event.data);
-          break;
-        case "UserJoin":
-        case "UserLeave":
-        case "ChatMessage":
-          handleChatEvent(event);
-          break;
+            break;
+          case "SetTime":
+            setDebounce();
+            setVideoTime(event.data);
+            break;
+        }
       }
+
+      logEventToChat(event);
     } catch (_err) {}
   });
 };

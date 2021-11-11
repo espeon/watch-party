@@ -167,3 +167,20 @@ export const joinSession = async (nickname, sessionId) => {
     console.error(err);
   }
 };
+
+/**
+ * @param {string} videoUrl
+ * @param {Array} subtitleTracks
+ */
+export const createSession = async (videoUrl, subtitleTracks) => {
+  const { id } = await fetch("/start_session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      video_url: videoUrl,
+      subtitle_tracks: subtitleTracks,
+    }),
+  }).then((r) => r.json());
+
+  window.location = `/?created=true#${id}`;
+};

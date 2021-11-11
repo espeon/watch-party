@@ -106,14 +106,23 @@ button.small-button {
   margin-right: 1ch !important;
 }
 
-#pre-join-controls {
+#pre-join-controls,
+#create-controls {
   width: 60%;
   margin: 0 auto;
   margin-top: 4em;
 }
 
-#join-session-form {
+#join-session-form,
+#create-session-form {
   margin-bottom: 4em;
+}
+
+#post-create-message {
+  display: none;
+  width: 500px;
+  max-width: 100%;
+  font-size: 0.85em;
 }
 
 #chatbox-container {

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>watch party :D</title>
-    <link rel="stylesheet" href="/styles.css?v=2" />
+    <link rel="stylesheet" href="/styles.css?v=3" />
   </head>
 
   <body>
@@ -16,7 +16,12 @@
       <form id="join-session-form">
         <h2>Join a session</h2>
 
-        <label for="nickname">Nickname:</label>
+        <p id="post-create-message">
+          Your session has been created successfully. Copy the current url or
+          the Session ID below and share it with your friends. :)
+        </p>
+
+        <label for="join-session-nickname">Nickname:</label>
         <input
           type="text"
           id="join-session-nickname"
@@ -24,7 +29,7 @@
           required
         />
 
-        <label for="session-id">Session ID:</label>
+        <label for="join-session-id">Session ID:</label>
         <input
           type="text"
           id="join-session-id"

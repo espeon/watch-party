@@ -1,4 +1,4 @@
-import { joinSession } from "./watch-session.mjs?v=2";
+import { joinSession } from "./watch-session.mjs?v=3";
 
 /**
  * @param {HTMLInputElement} field
@@ -23,7 +23,17 @@ const saveNickname = (field) => {
   }
 };
 
+const displayPostCreateMessage = () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("created") == "true") {
+    document.querySelector("#post-create-message").style["display"] = "block";
+    window.history.replaceState({}, document.title, `/${window.location.hash}`);
+  }
+};
+
 export const setupJoinSessionForm = () => {
+  displayPostCreateMessage();
+
   const form = document.querySelector("#join-session-form");
   const nickname = form.querySelector("#join-session-nickname");
   const sessionId = form.querySelector("#join-session-id");

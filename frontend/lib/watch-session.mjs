@@ -85,7 +85,7 @@ const setupOutgoingEvents = (video, socket) => {
   const currentVideoTime = () => (video.currentTime * 1000) | 0;
 
   video.addEventListener("pause", async (event) => {
-    if (outgoingDebounce) {
+    if (outgoingDebounce || !video.controls) {
       return;
     }
 
@@ -101,7 +101,7 @@ const setupOutgoingEvents = (video, socket) => {
   });
 
   video.addEventListener("play", (event) => {
-    if (outgoingDebounce) {
+    if (outgoingDebounce || !video.controls) {
       return;
     }
 
@@ -124,7 +124,7 @@ const setupOutgoingEvents = (video, socket) => {
       return;
     }
 
-    if (outgoingDebounce) {
+    if (outgoingDebounce || !video.controls) {
       return;
     }
 

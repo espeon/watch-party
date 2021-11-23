@@ -1,4 +1,4 @@
-import { setupVideo } from "./video.mjs?v=2";
+import { setupVideo } from "./video.mjs?v=e";
 import { setupChat, logEventToChat } from "./chat.mjs?v=2";
 
 /**
@@ -85,7 +85,12 @@ const setupOutgoingEvents = (video, socket) => {
   const currentVideoTime = () => (video.currentTime * 1000) | 0;
 
   video.addEventListener("pause", async (event) => {
-    if (outgoingDebounce) {
+    if (outgoingDebounce || !video.controls) {
+      return;
+    }
+
+    // don't send a pause event for the video ending
+    if (video.currentTime == video.duration) {
       return;
     }
 
@@ -101,7 +106,7 @@ const setupOutgoingEvents = (video, socket) => {
   });
 
   video.addEventListener("play", (event) => {
-    if (outgoingDebounce) {
+    if (outgoingDebounce || !video.controls) {
       return;
     }
 
@@ -124,7 +129,7 @@ const setupOutgoingEvents = (video, socket) => {
       return;
     }
 
-    if (outgoingDebounce) {
+    if (outgoingDebounce || !video.controls) {
       return;
     }
 

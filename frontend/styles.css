@@ -129,6 +129,10 @@ button.small-button {
   display: none;
 }
 
+.chat-message {
+  overflow-wrap: break-word;
+}
+
 .chat-message > strong {
   color: rgb(126, 208, 255);
 }

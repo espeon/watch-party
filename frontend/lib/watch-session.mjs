@@ -1,4 +1,4 @@
-import { setupVideo } from "./video.mjs?v=2";
+import { setupVideo } from "./video.mjs?v=e";
 import { setupChat, logEventToChat } from "./chat.mjs?v=2";
 
 /**

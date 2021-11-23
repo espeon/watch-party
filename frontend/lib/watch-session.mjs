@@ -89,6 +89,11 @@ const setupOutgoingEvents = (video, socket) => {
       return;
     }
 
+    // don't send a pause event for the video ending
+    if (video.currentTime == video.duration) {
+      return;
+    }
+
     socket.send(
       JSON.stringify({
         op: "SetPlaying",

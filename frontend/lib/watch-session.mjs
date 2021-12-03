@@ -9,7 +9,7 @@ import { setupChat, logEventToChat } from "./chat.mjs?v=2";
 const createWebSocket = (sessionId, nickname) => {
   const wsUrl = new URL(
     `/sess/${sessionId}/subscribe` +
-      `?nickname=${encodeURIComponent(nickname)}`,
+    `?nickname=${encodeURIComponent(nickname)}`,
     window.location.href
   );
   wsUrl.protocol = { "http:": "ws:", "https:": "wss:" }[wsUrl.protocol];
@@ -73,7 +73,7 @@ const setupIncomingEvents = (video, socket) => {
       }
 
       logEventToChat(event);
-    } catch (_err) {}
+    } catch (_err) { }
   });
 };
 
@@ -161,6 +161,13 @@ export const joinSession = async (nickname, sessionId) => {
         current_time_ms,
         is_playing
       );
+
+      // By default, we should disable video controls if the video is already playing.
+      // This solves an issue where Safari users join and seek to 00:00:00 because of
+      // outgoing events.
+      if (current_time_ms != 0) {
+        video.controls = false;
+      }
 
       setupOutgoingEvents(video, socket);
       setupIncomingEvents(video, socket);

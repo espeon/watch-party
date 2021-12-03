@@ -12,9 +12,8 @@ mod watch_session;
 use serde::Deserialize;
 
 use crate::{
-    events::{WatchEvent, WatchEventData},
-    viewer_connection::{ws_publish, ws_subscribe},
-    watch_session::{get_session, handle_watch_event_data, SubtitleTrack, WatchSession, SESSIONS},
+    viewer_connection::ws_subscribe,
+    watch_session::{get_session, SubtitleTrack, WatchSession, SESSIONS},
 };
 
 #[derive(Deserialize)]
@@ -79,59 +78,6 @@ async fn main() {
             RequestedSession::Error(e) => e,
         });
 
-    let set_playing_route = get_running_session
-        .and(warb::path!("playing"))
-        .and(warb::put())
-        .and(warb::body::json())
-        .map(|requested_session, playing: bool| match requested_session {
-            RequestedSession::Session(uuid, mut sess) => {
-                let data = WatchEventData::SetPlaying {
-                    playing,
-                    time: sess.get_time_ms(),
-                };
-
-                handle_watch_event_data(uuid, &mut sess, data.clone());
-                tokio::spawn(ws_publish(
-                    uuid,
-                    None,
-                    WatchEvent {
-                        user: None,
-                        data,
-                        reflected: false,
-                    },
-                ));
-
-                warb::reply::with_status(warb::reply::json(&sess.view()), StatusCode::OK)
-            }
-            RequestedSession::Error(e) => e,
-        });
-
-    let set_timestamp_route = get_running_session
-        .and(warb::path!("current_time"))
-        .and(warb::put())
-        .and(warb::body::json())
-        .map(
-            |requested_session, current_time_ms: u64| match requested_session {
-                RequestedSession::Session(uuid, mut sess) => {
-                    let data = WatchEventData::SetTime(current_time_ms);
-
-                    handle_watch_event_data(uuid, &mut sess, data.clone());
-                    tokio::spawn(ws_publish(
-                        uuid,
-                        None,
-                        WatchEvent {
-                            user: None,
-                            data,
-                            reflected: false,
-                        },
-                    ));
-
-                    warb::reply::with_status(warb::reply::json(&sess.view()), StatusCode::OK)
-                }
-                RequestedSession::Error(e) => e,
-            },
-        );
-
     let ws_subscribe_route = get_running_session
         .and(warb::path!("subscribe"))
         .and(warb::query())
@@ -147,8 +93,6 @@ async fn main() {
 
     let routes = start_session_route
         .or(get_status_route)
-        .or(set_playing_route)
-        .or(set_timestamp_route)
         .or(ws_subscribe_route)
         .or(warb::path::end().and(warb::fs::file("frontend/index.html")))
         .or(warb::fs::dir("frontend"));

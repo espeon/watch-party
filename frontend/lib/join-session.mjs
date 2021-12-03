@@ -37,6 +37,7 @@ export const setupJoinSessionForm = () => {
   const form = document.querySelector("#join-session-form");
   const nickname = form.querySelector("#join-session-nickname");
   const sessionId = form.querySelector("#join-session-id");
+  const button = form.querySelector("#join-session-button");
 
   loadNickname(nickname);
 
@@ -44,12 +45,12 @@ export const setupJoinSessionForm = () => {
     sessionId.value = window.location.hash.substring(1);
   }
 
-  document
-    .querySelector("#join-session-form")
-    .addEventListener("submit", (event) => {
-      event.preventDefault();
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
 
-      saveNickname(nickname);
-      joinSession(nickname.value, sessionId.value);
-    });
+    button.disabled = true;
+
+    saveNickname(nickname);
+    joinSession(nickname.value, sessionId.value);
+  });
 };

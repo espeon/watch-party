@@ -1,4 +1,4 @@
-import { setupJoinSessionForm } from "./lib/join-session.mjs?v=3";
+import { setupJoinSessionForm } from "./lib/join-session.mjs?v=4";
 
 const main = () => {
   setupJoinSessionForm();

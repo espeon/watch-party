@@ -6,6 +6,7 @@ const createVideoElement = (videoUrl, subtitles) => {
   const video = document.createElement("video");
   video.controls = true;
   video.autoplay = false;
+  video.volume = 0.5;
   video.crossOrigin = "anonymous";
 
   const source = document.createElement("source");
@@ -46,15 +47,15 @@ const createVideoElement = (videoUrl, subtitles) => {
           navigator.mediaSession.setActionHandler("skipad", null);
         } else {
           // disable media button support by ignoring the events
-          navigator.mediaSession.setActionHandler("play", () => {});
-          navigator.mediaSession.setActionHandler("pause", () => {});
-          navigator.mediaSession.setActionHandler("stop", () => {});
-          navigator.mediaSession.setActionHandler("seekbackward", () => {});
-          navigator.mediaSession.setActionHandler("seekforward", () => {});
-          navigator.mediaSession.setActionHandler("seekto", () => {});
-          navigator.mediaSession.setActionHandler("previoustrack", () => {});
-          navigator.mediaSession.setActionHandler("nexttrack", () => {});
-          navigator.mediaSession.setActionHandler("skipad", () => {});
+          navigator.mediaSession.setActionHandler("play", () => { });
+          navigator.mediaSession.setActionHandler("pause", () => { });
+          navigator.mediaSession.setActionHandler("stop", () => { });
+          navigator.mediaSession.setActionHandler("seekbackward", () => { });
+          navigator.mediaSession.setActionHandler("seekforward", () => { });
+          navigator.mediaSession.setActionHandler("seekto", () => { });
+          navigator.mediaSession.setActionHandler("previoustrack", () => { });
+          navigator.mediaSession.setActionHandler("nexttrack", () => { });
+          navigator.mediaSession.setActionHandler("skipad", () => { });
         }
         return;
       }

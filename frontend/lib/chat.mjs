@@ -43,6 +43,15 @@ export const setupChat = async (socket) => {
   document.querySelector("#chatbox-container").style["display"] = "block";
   setupChatboxEvents(socket);
 
+  window.addEventListener("keydown", event => {
+    try {
+      const isSelectionEmpty = window.getSelection().toString().length === 0;
+      if (event.code.match(/Key\w/) && isSelectionEmpty)
+        document.querySelector("#chatbox-send > input").focus()
+    } catch (_err) {
+    }
+  });
+
   fixChatSize();
   window.addEventListener("resize", () => {
     fixChatSize();

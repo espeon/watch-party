@@ -1,5 +1,5 @@
 import { setupVideo } from "./video.mjs?v=5";
-import { setupChat, logEventToChat } from "./chat.mjs?v=5";
+import { setupChat, logEventToChat } from "./chat.mjs?v=6";
 
 /**
  * @param {string} sessionId

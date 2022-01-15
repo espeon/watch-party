@@ -97,6 +97,21 @@ const checkDebounce = (event) => {
 };
 
 /**
+ * @returns {string}
+ */
+const getCurrentTimestamp = () => {
+  const t = new Date();
+  return `${matpad(t.getHours())}:${matpad(t.getMinutes())}:${matpad(t.getSeconds())}`;
+};
+
+/**
+ * https://media.discordapp.net/attachments/834541919568527361/931678814751301632/66d2c68c48daa414c96951381665ec2e.png
+ */
+const matpad = (n) => {
+  return ("00" + n).slice(-2);
+};
+
+/**
  * @param {string} eventType
  * @param {string?} user
  * @param {Node?} content
@@ -105,6 +120,7 @@ const printChatMessage = (eventType, user, content) => {
   const chatMessage = document.createElement("div");
   chatMessage.classList.add("chat-message");
   chatMessage.classList.add(eventType);
+  chatMessage.title = getCurrentTimestamp();
 
   if (user != null) {
     const userName = document.createElement("strong");

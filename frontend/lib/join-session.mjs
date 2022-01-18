@@ -79,6 +79,6 @@ export const setupJoinSessionForm = () => {
 
     saveNickname(nickname);
     saveColour(colour);
-    joinSession(nickname.value, sessionId.value, colour.value);
+    joinSession(nickname.value, sessionId.value, colour.value.replace(/^#/, ""));
   });
 };

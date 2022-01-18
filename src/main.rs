@@ -26,6 +26,7 @@ struct StartSessionBody {
 #[derive(Deserialize)]
 struct SubscribeQuery {
     nickname: String,
+    colour: String,
 }
 
 #[tokio::main]
@@ -85,7 +86,7 @@ async fn main() {
         .map(
             |requested_session, query: SubscribeQuery, ws: warb::ws::Ws| match requested_session {
                 RequestedSession::Session(uuid, _) => ws
-                    .on_upgrade(move |ws| ws_subscribe(uuid, query.nickname, ws))
+                    .on_upgrade(move |ws| ws_subscribe(uuid, query.nickname, query.colour, ws))
                     .into_response(),
                 RequestedSession::Error(error_response) => error_response.into_response(),
             },

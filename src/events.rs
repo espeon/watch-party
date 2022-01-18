@@ -15,6 +15,8 @@ pub enum WatchEventData {
 pub struct WatchEvent {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub colour: Option<String>,
     #[serde(flatten)]
     pub data: WatchEventData,
     #[serde(default)]
@@ -22,9 +24,10 @@ pub struct WatchEvent {
 }
 
 impl WatchEvent {
-    pub fn new(user: String, data: WatchEventData) -> Self {
+    pub fn new(user: String, colour: String, data: WatchEventData) -> Self {
         WatchEvent {
             user: Some(user),
+            colour: Some(colour),
             data,
             reflected: false,
         }

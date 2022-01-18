@@ -28,9 +28,10 @@ pub struct ConnectedViewer {
     pub viewer_id: usize,
     pub tx: UnboundedSender<WatchEvent>,
     pub nickname: Option<String>,
+    pub colour: Option<String>,
 }
 
-pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, ws: WebSocket) {
+pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, colour: String, ws: WebSocket) {
     let viewer_id = NEXT_VIEWER_ID.fetch_add(1, Ordering::Relaxed);
     let (mut viewer_ws_tx, mut viewer_ws_rx) = ws.split();
 
@@ -48,6 +49,11 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, ws: WebSocket) {
         }
     });
 
+    let mut colour = colour;
+    if !colour.len() == 6 || !colour.chars().all(|x| x.is_ascii_hexdigit()) {
+        colour = String::from("7ed0ff");
+    }
+
     CONNECTED_VIEWERS.write().await.insert(
         viewer_id,
         ConnectedViewer {
@@ -55,13 +61,14 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, ws: WebSocket) {
             session: session_uuid,
             tx,
             nickname: Some(nickname.clone()),
+            colour: Some(colour.clone()),
         },
     );
 
     ws_publish(
         session_uuid,
         None,
-        WatchEvent::new(nickname.clone(), WatchEventData::UserJoin),
+        WatchEvent::new(nickname.clone(), colour.clone(), WatchEventData::UserJoin),
     )
     .await;
 
@@ -84,7 +91,7 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, ws: WebSocket) {
         ws_publish(
             session_uuid,
             Some(viewer_id),
-            WatchEvent::new(nickname.clone(), event),
+            WatchEvent::new(nickname.clone(), colour.clone(), event),
         )
         .await;
     }
@@ -92,7 +99,7 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, ws: WebSocket) {
     ws_publish(
         session_uuid,
         None,
-        WatchEvent::new(nickname.clone(), WatchEventData::UserLeave),
+        WatchEvent::new(nickname.clone(), colour.clone(), WatchEventData::UserLeave),
     )
     .await;
 

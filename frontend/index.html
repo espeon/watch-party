@@ -28,6 +28,16 @@
           placeholder="Nickname"
           required
         />
+        
+        <label for="join-session-colour">Colour:</label>
+        <input
+          type="text"
+          id="join-session-colour"
+          placeholder="7ed0ff"
+          value="7ed0ff"
+          pattern="[a-fA-F\d]{6}"
+          required
+        />
 
         <label for="join-session-id">Session ID:</label>
         <input
@@ -52,6 +62,6 @@
       </form>
     </div>
 
-    <script type="module" src="/main.mjs?v=6"></script>
+    <script type="module" src="/main.mjs?v=7"></script>
   </body>
 </html>

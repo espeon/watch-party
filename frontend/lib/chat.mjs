@@ -43,13 +43,12 @@ export const setupChat = async (socket) => {
   document.querySelector("#chatbox-container").style["display"] = "block";
   setupChatboxEvents(socket);
 
-  window.addEventListener("keydown", event => {
+  window.addEventListener("keydown", (event) => {
     try {
       const isSelectionEmpty = window.getSelection().toString().length === 0;
       if (event.code.match(/Key\w/) && isSelectionEmpty)
-        document.querySelector("#chatbox-send > input").focus()
-    } catch (_err) {
-    }
+        document.querySelector("#chatbox-send > input").focus();
+    } catch (_err) {}
   });
 
   fixChatSize();
@@ -101,7 +100,9 @@ const checkDebounce = (event) => {
  */
 const getCurrentTimestamp = () => {
   const t = new Date();
-  return `${matpad(t.getHours())}:${matpad(t.getMinutes())}:${matpad(t.getSeconds())}`;
+  return `${matpad(t.getHours())}:${matpad(t.getMinutes())}:${matpad(
+    t.getSeconds()
+  )}`;
 };
 
 /**
@@ -116,7 +117,7 @@ const matpad = (n) => {
  * @param {string?} user
  * @param {Node?} content
  */
-const printChatMessage = (eventType, user, content) => {
+const printChatMessage = (eventType, user, colour, content) => {
   const chatMessage = document.createElement("div");
   chatMessage.classList.add("chat-message");
   chatMessage.classList.add(eventType);
@@ -124,6 +125,7 @@ const printChatMessage = (eventType, user, content) => {
 
   if (user != null) {
     const userName = document.createElement("strong");
+    userName.style = `color: #${colour}`;
     userName.textContent = user;
     chatMessage.appendChild(userName);
   }
@@ -158,6 +160,7 @@ export const logEventToChat = (event) => {
       printChatMessage(
         "user-join",
         event.user,
+        event.colour,
         document.createTextNode("joined")
       );
       break;
@@ -166,6 +169,7 @@ export const logEventToChat = (event) => {
       printChatMessage(
         "user-leave",
         event.user,
+        event.colour,
         document.createTextNode("left")
       );
       break;
@@ -174,7 +178,12 @@ export const logEventToChat = (event) => {
       const messageContent = document.createElement("span");
       messageContent.classList.add("message-content");
       messageContent.textContent = event.data;
-      printChatMessage("chat-message", event.user, messageContent);
+      printChatMessage(
+        "chat-message",
+        event.user,
+        event.colour,
+        messageContent
+      );
       break;
     }
     case "SetTime": {
@@ -185,7 +194,7 @@ export const logEventToChat = (event) => {
         document.createTextNode(formatTime(event.data))
       );
 
-      printChatMessage("set-time", event.user, messageContent);
+      printChatMessage("set-time", event.user, event.colour, messageContent);
       break;
     }
     case "SetPlaying": {
@@ -200,8 +209,7 @@ export const logEventToChat = (event) => {
         document.createTextNode(formatTime(event.data.time))
       );
 
-      printChatMessage("set-playing", event.user, messageContent);
-
+      printChatMessage("set-playing", event.user, event.colour, messageContent);
       break;
     }
   }

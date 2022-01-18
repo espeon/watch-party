@@ -1,15 +1,16 @@
-import { setupVideo } from "./video.mjs?v=5";
-import { setupChat, logEventToChat } from "./chat.mjs?v=6";
+import { setupVideo } from "./video.mjs?v=7";
+import { setupChat, logEventToChat } from "./chat.mjs?v=7";
 
 /**
  * @param {string} sessionId
  * @param {string} nickname
  * @returns {WebSocket}
  */
-const createWebSocket = (sessionId, nickname) => {
+const createWebSocket = (sessionId, nickname, colour) => {
   const wsUrl = new URL(
     `/sess/${sessionId}/subscribe` +
-    `?nickname=${encodeURIComponent(nickname)}`,
+      `?nickname=${encodeURIComponent(nickname)}` +
+      `&colour=${encodeURIComponent(colour)}`,
     window.location.href
   );
   wsUrl.protocol = { "http:": "ws:", "https:": "wss:" }[wsUrl.protocol];
@@ -73,7 +74,7 @@ const setupIncomingEvents = (video, socket) => {
       }
 
       logEventToChat(event);
-    } catch (_err) { }
+    } catch (_err) {}
   });
 };
 
@@ -146,14 +147,14 @@ const setupOutgoingEvents = (video, socket) => {
  * @param {string} nickname
  * @param {string} sessionId
  */
-export const joinSession = async (nickname, sessionId) => {
+export const joinSession = async (nickname, sessionId, colour) => {
   try {
     window.location.hash = sessionId;
 
     const { video_url, subtitle_tracks, current_time_ms, is_playing } =
       await fetch(`/sess/${sessionId}`).then((r) => r.json());
 
-    const socket = createWebSocket(sessionId, nickname);
+    const socket = createWebSocket(sessionId, nickname, colour);
     socket.addEventListener("open", async () => {
       const video = await setupVideo(
         video_url,

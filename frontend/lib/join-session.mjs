@@ -1,4 +1,4 @@
-import { joinSession } from "./watch-session.mjs?v=6";
+import { joinSession } from "./watch-session.mjs?v=7";
 
 /**
  * @param {HTMLInputElement} field
@@ -23,6 +23,31 @@ const saveNickname = (field) => {
   }
 };
 
+/**
+ * @param {HTMLInputElement} field
+ */
+const loadColour = (field) => {
+  try {
+    const savedColour = localStorage.getItem("watch-party-colour");
+    if (savedColour != null && savedColour != "") {
+      field.value = savedColour;
+    }
+  } catch (_err) {
+    // Sometimes localStorage is blocked from use
+  }
+};
+
+/**
+ * @param {HTMLInputElement} field
+ */
+const saveColour = (field) => {
+  try {
+    localStorage.setItem("watch-party-colour", field.value);
+  } catch (_err) {
+    // see loadColour
+  }
+};
+
 const displayPostCreateMessage = () => {
   const params = new URLSearchParams(window.location.search);
   if (params.get("created") == "true") {
@@ -36,10 +61,12 @@ export const setupJoinSessionForm = () => {
 
   const form = document.querySelector("#join-session-form");
   const nickname = form.querySelector("#join-session-nickname");
+  const colour = form.querySelector("#join-session-colour");
   const sessionId = form.querySelector("#join-session-id");
   const button = form.querySelector("#join-session-button");
 
   loadNickname(nickname);
+  loadColour(colour);
 
   if (window.location.hash.match(/#[0-9a-f\-]+/)) {
     sessionId.value = window.location.hash.substring(1);
@@ -51,6 +78,7 @@ export const setupJoinSessionForm = () => {
     button.disabled = true;
 
     saveNickname(nickname);
-    joinSession(nickname.value, sessionId.value);
+    saveColour(colour);
+    joinSession(nickname.value, sessionId.value, colour.value);
   });
 };

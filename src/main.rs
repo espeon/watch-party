@@ -8,6 +8,7 @@ use warp as warb; // i think it's funny
 mod events;
 mod viewer_connection;
 mod watch_session;
+mod utils;
 
 use serde::Deserialize;
 

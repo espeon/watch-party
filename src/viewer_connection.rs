@@ -16,6 +16,7 @@ use warp::ws::{Message, WebSocket};
 
 use crate::{
     events::{WatchEvent, WatchEventData},
+    utils::truncate_str,
     watch_session::{get_session, handle_watch_event_data},
 };
 
@@ -53,6 +54,7 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, colour: String, 
     if !colour.len() == 6 || !colour.chars().all(|x| x.is_ascii_hexdigit()) {
         colour = String::from("7ed0ff");
     }
+    let nickname = truncate_str(&nickname, 50).to_string();
 
     CONNECTED_VIEWERS.write().await.insert(
         viewer_id,

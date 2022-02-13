@@ -138,7 +138,8 @@ button.small-button {
 }
 
 .chat-message.user-join,
-.chat-message.user-leave {
+.chat-message.user-leave,
+.chat-message.ping {
   font-style: italic;
 }
 

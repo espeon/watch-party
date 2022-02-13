@@ -1,4 +1,4 @@
-import { joinSession } from "./watch-session.mjs?v=7";
+import { joinSession } from "./watch-session.mjs?v=8";
 
 /**
  * @param {HTMLInputElement} field

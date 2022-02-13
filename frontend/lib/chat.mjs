@@ -12,12 +12,24 @@ const setupChatboxEvents = (socket) => {
     if (content.trim().length) {
       input.value = "";
 
-      socket.send(
-        JSON.stringify({
-          op: "ChatMessage",
-          data: content,
-        })
-      );
+      if (
+        content.toLowerCase() == "/ping" ||
+        content.toLowerCase().startsWith("/ping ")
+      ) {
+        socket.send(
+          JSON.stringify({
+            op: "Ping",
+            data: content.slice(5).trim(),
+          })
+        );
+      } else {
+        socket.send(
+          JSON.stringify({
+            op: "ChatMessage",
+            data: content,
+          })
+        );
+      }
     }
   });
 };
@@ -212,5 +224,34 @@ export const logEventToChat = (event) => {
       printChatMessage("set-playing", event.user, event.colour, messageContent);
       break;
     }
+    case "Ping": {
+      const messageContent = document.createElement("span");
+      if (event.data) {
+        messageContent.appendChild(document.createTextNode("pinged saying: "));
+        messageContent.appendChild(document.createTextNode(event.data));
+      } else {
+        messageContent.appendChild(document.createTextNode("pinged"));
+      }
+
+      printChatMessage("ping", event.user, event.colour, messageContent);
+      beep();
+      break;
+    }
   }
+};
+
+const beep = () => {
+  const context = new AudioContext();
+
+  const gain = context.createGain();
+  gain.connect(context.destination);
+  gain.gain.value = 0.1;
+  
+  const oscillator = context.createOscillator();
+  oscillator.connect(gain);
+  oscillator.frequency.value = 520;
+  oscillator.type = "square";
+  
+  oscillator.start(context.currentTime);
+  oscillator.stop(context.currentTime + 0.22);
 };

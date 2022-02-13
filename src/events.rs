@@ -9,6 +9,7 @@ pub enum WatchEventData {
     UserJoin,
     UserLeave,
     ChatMessage(String),
+    Ping(String)
 }
 
 #[derive(Clone, Serialize, Deserialize)]

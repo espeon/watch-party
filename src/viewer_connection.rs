@@ -15,7 +15,7 @@ use uuid::Uuid;
 use warp::ws::{Message, WebSocket};
 
 use crate::{
-    events::{WatchEvent, WatchEventData},
+    events::{Viewer, WatchEvent, WatchEventData},
     utils::truncate_str,
     watch_session::{get_session, handle_watch_event_data},
 };
@@ -74,6 +74,8 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, colour: String, 
     )
     .await;
 
+    update_viewer_list(session_uuid).await;
+
     while let Some(Ok(message)) = viewer_ws_rx.next().await {
         let event: WatchEventData = match message
             .to_str()
@@ -113,6 +115,7 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, colour: String, 
     .await;
 
     CONNECTED_VIEWERS.write().await.remove(&viewer_id);
+    update_viewer_list(session_uuid).await;
 }
 
 pub async fn ws_publish(session_uuid: Uuid, skip_viewer_id: Option<usize>, event: WatchEvent) {
@@ -126,4 +129,28 @@ pub async fn ws_publish(session_uuid: Uuid, skip_viewer_id: Option<usize>, event
             ..event.clone()
         });
     }
+}
+
+async fn update_viewer_list(session_uuid: Uuid) {
+    let mut viewers = Vec::new();
+
+    for viewer in CONNECTED_VIEWERS.read().await.values() {
+        if viewer.session == session_uuid {
+            viewers.push(Viewer {
+                nickname: viewer.nickname.clone(),
+                colour: viewer.colour.clone(),
+            })
+        }
+    }
+
+    ws_publish(
+        session_uuid,
+        None,
+        WatchEvent::new(
+            String::from("server"),
+            String::from(""),
+            WatchEventData::UpdateViewerList(viewers),
+        ),
+    )
+    .await;
 }

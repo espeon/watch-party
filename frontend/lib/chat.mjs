@@ -267,3 +267,20 @@ const beep = () => {
   oscillator.start(context.currentTime);
   oscillator.stop(context.currentTime + 0.22);
 };
+
+export const updateViewerList = (viewers) => {
+  const listContainer = document.querySelector("#viewer-list");
+
+  // empty out the current list
+  listContainer.innerHTML = "";
+
+  // display the updated list
+  for (const viewer of viewers) {
+    const viewerElem = document.createElement("div");
+    const content = document.createElement("strong");
+    content.textContent = viewer.nickname;
+    content.style = `color: #${viewer.colour}`;
+    viewerElem.appendChild(content);
+    listContainer.appendChild(viewerElem);
+  }
+};

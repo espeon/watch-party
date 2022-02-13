@@ -1,6 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
+pub struct Viewer {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub nickname: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub colour: Option<String>,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(tag = "op", content = "data")]
 pub enum WatchEventData {
     SetPlaying {
@@ -17,6 +25,7 @@ pub enum WatchEventData {
     UserLeave,
     ChatMessage(String),
     Ping(String),
+    UpdateViewerList(Vec<Viewer>),
 }
 
 #[derive(Clone, Serialize, Deserialize)]

@@ -161,6 +161,16 @@ button.small-button {
   overflow-y: scroll;
 }
 
+#viewer-list {
+  padding: 0.5em 2em;
+  /* TODO: turn this into max-height instead of fixed height without breaking the chatbox height */
+  height: 4em;
+  overflow-y: scroll;
+  color: rgb(126, 208, 255);
+  border-bottom: var(--fg);
+  border-bottom-style: solid;
+}
+
 #chatbox-container {
   background-color: #222;
 }
@@ -196,6 +206,6 @@ button.small-button {
   }
 
   #chatbox {
-    height: calc(100vh - 5em) !important;
+    height: calc(100vh - 5em - 4em) !important;
   }
 }

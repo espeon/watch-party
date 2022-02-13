@@ -84,11 +84,18 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, colour: String, 
             None => continue,
         };
 
-        handle_watch_event_data(
-            session_uuid,
-            &mut get_session(session_uuid).unwrap(),
-            event.clone(),
-        );
+        let session = &mut get_session(session_uuid).unwrap();
+
+        // server side event modification where neccessary
+        let event: WatchEventData = match event {
+            WatchEventData::SetTime { from: _, to } => WatchEventData::SetTime {
+                from: Some(session.get_time_ms()),
+                to: to,
+            },
+            _ => event,
+        };
+
+        handle_watch_event_data(session_uuid, session, event.clone());
 
         ws_publish(
             session_uuid,

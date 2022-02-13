@@ -200,10 +200,22 @@ export const logEventToChat = (event) => {
     }
     case "SetTime": {
       const messageContent = document.createElement("span");
-      messageContent.appendChild(document.createTextNode("set the time to "));
+      if (event.data.from != undefined) {
+        messageContent.appendChild(
+          document.createTextNode("set the time from ")
+        );
+
+        messageContent.appendChild(
+          document.createTextNode(formatTime(event.data.from))
+        );
+
+        messageContent.appendChild(document.createTextNode(" to "));
+      } else {
+        messageContent.appendChild(document.createTextNode("set the time to "));
+      }
 
       messageContent.appendChild(
-        document.createTextNode(formatTime(event.data))
+        document.createTextNode(formatTime(event.data.to))
       );
 
       printChatMessage("set-time", event.user, event.colour, messageContent);
@@ -246,12 +258,12 @@ const beep = () => {
   const gain = context.createGain();
   gain.connect(context.destination);
   gain.gain.value = 0.1;
-  
+
   const oscillator = context.createOscillator();
   oscillator.connect(gain);
   oscillator.frequency.value = 520;
   oscillator.type = "square";
-  
+
   oscillator.start(context.currentTime);
   oscillator.stop(context.currentTime + 0.22);
 };

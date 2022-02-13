@@ -85,8 +85,8 @@ pub fn handle_watch_event_data(
             watch_session.set_playing(playing, time);
         }
 
-        WatchEventData::SetTime(time) => {
-            watch_session.set_time_ms(time);
+        WatchEventData::SetTime { from: _, to } => {
+            watch_session.set_time_ms(to);
         }
 
         _ => {}

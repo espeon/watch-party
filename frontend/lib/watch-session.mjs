@@ -137,7 +137,9 @@ const setupOutgoingEvents = (video, socket) => {
     socket.send(
       JSON.stringify({
         op: "SetTime",
-        data: currentVideoTime(),
+        data: {
+          to: currentVideoTime(),
+        },
       })
     );
   });

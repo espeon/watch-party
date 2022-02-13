@@ -12,24 +12,42 @@ const setupChatboxEvents = (socket) => {
     if (content.trim().length) {
       input.value = "";
 
-      if (
-        content.toLowerCase() == "/ping" ||
-        content.toLowerCase().startsWith("/ping ")
-      ) {
-        socket.send(
-          JSON.stringify({
-            op: "Ping",
-            data: content.slice(5).trim(),
-          })
-        );
-      } else {
-        socket.send(
-          JSON.stringify({
-            op: "ChatMessage",
-            data: content,
-          })
-        );
+      // handle commands
+      if (content.startsWith("/")) {
+        const command = content.toLowerCase().match(/^\/\S+/)[0];
+        const args = content.slice(command.length).trim();
+
+        let handled = false;
+        switch (command) {
+          case "/ping":
+            socket.send(
+              JSON.stringify({
+                op: "Ping",
+                data: args,
+              })
+            );
+            handled = true;
+            break;
+          case "/help":
+            // TODO: print help in chat
+            handled = true;
+            break;
+          default:
+            break;
+        }
+
+        if (handled) {
+          return;
+        }
       }
+
+      // handle regular chat messages
+      socket.send(
+        JSON.stringify({
+          op: "ChatMessage",
+          data: content,
+        })
+      );
     }
   });
 };

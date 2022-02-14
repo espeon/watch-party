@@ -1,7 +1,15 @@
 :root {
-  --bg: rgb(28, 23, 36);
-  --fg: rgb(234, 234, 248);
-  --accent: hsl(275, 57%, 68%);
+  --bg-rgb: 28, 23, 36;
+  --fg-rgb: 234, 234, 248;
+  --accent-rgb: 181, 127, 220;
+  --fg: rgb(var(--fg-rgb));
+  --bg: rgb(var(--bg-rgb));
+  --default-user-color: rgb(126, 208, 255);
+  --accent: rgb(var(--accent-rgb));
+  --fg-transparent: rgba(var(--fg-rgb), 0.125);
+  --bg-transparent: rgba(var(--bg-rgb), 0.125);
+  --chat-bg: linear-gradient(var(--fg-transparent), var(--fg-transparent)), linear-gradient(var(--bg), var(--bg));
+  --autocomplete-bg: linear-gradient(var(--fg-transparent), var(--fg-transparent)), linear-gradient(var(--fg-transparent), var(--fg-transparent)), linear-gradient(var(--bg), var(--bg));
 }
 
 html {
@@ -9,30 +17,34 @@ html {
   color: var(--fg);
   font-size: 1.125rem;
   font-family: sans-serif;
-
-  overflow-y: scroll;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-::-webkit-scrollbar {
-  width: 0;
-  background: transparent;
 }
 
 html,
 body {
   margin: 0;
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
 }
 
 video {
   display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 
-  width: 100vw;
-  height: auto;
-
-  max-width: auto;
-  max-height: 100vh;
+#video-container {
+  flex-grow: 1;
+  flex-shrink: 1;
+  display: none;
 }
 
 a {
@@ -72,7 +84,7 @@ button {
   background-color: var(--accent);
   border: var(--accent);
   border-radius: 6px;
-  color: #fff;
+  color: var(--fg);
   padding: 0.5em 1em;
   display: inline-block;
   font-weight: 400;
@@ -88,6 +100,7 @@ button {
   user-select: none;
   border: 1px solid rgba(0, 0, 0, 0);
   line-height: 1.5;
+  cursor: pointer;
 }
 
 button.small-button {
@@ -133,8 +146,16 @@ button.small-button {
   overflow-wrap: break-word;
 }
 
-.chat-message > strong {
-  color: rgb(126, 208, 255);
+.chat-message > strong, #viewer-list strong {
+  color: var(--user-color, var(--default-user-color));
+}
+
+@supports (-webkit-background-clip: text) {
+  .chat-message > strong, #viewer-list strong {
+    background: linear-gradient(var(--fg-transparent), var(--fg-transparent)), linear-gradient(var(--user-color, var(--default-user-color)), var(--user-color, var(--default-user-color)));
+    -webkit-background-clip: text;
+    color: transparent !important;
+  }
 }
 
 .chat-message.user-join,
@@ -168,27 +189,34 @@ button.small-button {
 
 #chatbox {
   padding: 0.5em 2em;
-  min-height: 8em;
   overflow-y: scroll;
+  flex-shrink: 1;
+  flex-grow: 1;
 }
 
 #viewer-list {
   padding: 0.5em 2em;
   /* TODO: turn this into max-height instead of fixed height without breaking the chatbox height */
-  height: 4em;
   overflow-y: scroll;
-  color: rgb(126, 208, 255);
   border-bottom: var(--fg);
   border-bottom-style: solid;
+  max-height: 4rem;
+  flex-shrink: 0;
 }
 
 #chatbox-container {
-  background-color: #222;
+  background-image: var(--chat-bg);
+  flex-direction: column;
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: 400px;
+  overflow: hidden;
 }
 
 #chatbox-send {
   padding: 0 2em;
   padding-bottom: 0.5em;
+  position: relative;
 }
 
 #chatbox-send > input {
@@ -196,22 +224,40 @@ button.small-button {
   width: 100%;
 }
 
-@media (min-aspect-ratio: 4/3) {
-  #video-container video {
-    width: calc(100vw - 400px);
-    position: absolute;
-    height: 100vh;
-    background-color: black;
-  }
+#emoji-autocomplete {
+  position: absolute;
+  bottom: 3.25rem;
+  background-image: var(--autocomplete-bg);
+  padding: 0.25rem;
+  border-radius: 6px;
+  width: calc(100% - 4.5rem);
+}
 
-  #video-container {
-    float: left;
-    height: 100vh;
-    position: relative;
+#emoji-autocomplete:empty {
+  display: none;
+}
+
+.emoji-option {
+  background: transparent;
+  font-size: 0.75rem;
+  text-align: left;
+  margin: 0 0 0.25rem;
+  border-radius: 4px;
+  width: 100%;
+}
+.emoji-option:hover, .emoji-option:focus {
+  background: var(--fg-transparent);
+}
+.emoji-option:last-child {
+  margin: 0;
+}
+
+@media (min-aspect-ratio: 4/3) {
+  body {
+    flex-direction: row;
   }
 
   #chatbox-container {
-    float: right;
     width: 400px;
     height: 100vh !important;
   }

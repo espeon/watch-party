@@ -140,7 +140,9 @@ const createVideoElement = (videoUrl, subtitles) => {
 export const setupVideo = async (videoUrl, subtitles, currentTime, playing) => {
   document.querySelector("#pre-join-controls").style["display"] = "none";
   const video = createVideoElement(videoUrl, subtitles);
-  document.querySelector("#video-container").appendChild(video);
+  const videoContainer = document.querySelector("#video-container");
+  videoContainer.style.display = "block";
+  videoContainer.appendChild(video);
 
   video.currentTime = currentTime / 1000.0;
 

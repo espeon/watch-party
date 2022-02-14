@@ -9,3 +9,4 @@ export function emojify(text) {
   if(last < text.length) nodes.push(document.createTextNode(text.slice(last)))
   return nodes
 }
+export const emojis = Promise.resolve(["blobcat", "blobhaj"])

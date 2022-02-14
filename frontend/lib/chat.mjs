@@ -1,19 +1,40 @@
 import { setDebounce, setVideoTime, setPlaying } from "./watch-session.mjs?v=9";
-import { emojify } from "./emojis.mjs?v=9";
+import { emojify, emojis } from "./emojis.mjs?v=9";
 
 const setupChatboxEvents = (socket) => {
   // clear events by just reconstructing the form
   const oldChatForm = document.querySelector("#chatbox-send");
   const chatForm = oldChatForm.cloneNode(true);
+  const messageInput = chatForm.querySelector("input");
+  const emojiAutocomplete = chatForm.querySelector("#emoji-autocomplete");
   oldChatForm.replaceWith(chatForm);
+  
+  let autocompleting = false;
+  
+  const replaceMessage = message => () => {
+    messageInput.value = message;
+	autocomplete();
+  }
+  async function autocomplete(){
+    if(autocompleting) return;
+	emojiAutocomplete.textContent = "";
+    autocompleting = true;
+    let text = messageInput.value.slice(0, messageInput.selectionStart);
+	const match = text.match(/(:[^\s:]+)?:[^\s:]*$/);
+	if(!match || match[1]) return autocompleting = false; // We don't need to autocomplete.
+	const prefix = text.slice(0, match.index);
+	const search = text.slice(match.index + 1);
+	const suffix = messageInput.value.slice(messageInput.selectionStart);
+	emojiAutocomplete.append(...(await emojis).filter(e => e.toLowerCase().startsWith(search.toLowerCase())).map(e => Object.assign(document.createElement("button"), {className: "emoji-option", textContent: e, onclick: replaceMessage(prefix + ":" + e + ":" + suffix)})))
+	autocompleting = false;
+  }
+  messageInput.addEventListener("input", autocomplete)
 
   chatForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    const input = chatForm.querySelector("input");
-    const content = input.value;
+    const content = messageInput.value;
     if (content.trim().length) {
-      input.value = "";
+      messageInput.value = "";
 
       // handle commands
       if (content.startsWith("/")) {
@@ -82,38 +103,19 @@ const setupChatboxEvents = (socket) => {
   });
 };
 
-const fixChatSize = () => {
-  const video = document.querySelector("video");
-  const chatbox = document.querySelector("#chatbox");
-  const chatboxContainer = document.querySelector("#chatbox-container");
-
-  if (video && chatbox && chatboxContainer) {
-    const delta = chatboxContainer.clientHeight - chatbox.clientHeight;
-
-    chatbox.style["height"] = `calc(${
-      window.innerHeight - video.clientHeight
-    }px - ${delta}px - 1em)`;
-  }
-};
-
 /**
  * @param {WebSocket} socket
  */
 export const setupChat = async (socket) => {
-  document.querySelector("#chatbox-container").style["display"] = "block";
+  document.querySelector("#chatbox-container").style["display"] = "flex";
   setupChatboxEvents(socket);
 
   window.addEventListener("keydown", (event) => {
     try {
       const isSelectionEmpty = window.getSelection().toString().length === 0;
       if (event.code.match(/Key\w/) && isSelectionEmpty)
-        document.querySelector("#chatbox-send > input").focus();
+        messageInput.focus();
     } catch (_err) {}
-  });
-
-  fixChatSize();
-  window.addEventListener("resize", () => {
-    fixChatSize();
   });
 };
 
@@ -185,7 +187,7 @@ const printChatMessage = (eventType, user, colour, content) => {
 
   if (user != null) {
     const userName = document.createElement("strong");
-    userName.style = `color: #${colour}`;
+    userName.style = `--user-color: #${colour}`;
     userName.textContent = user;
     chatMessage.appendChild(userName);
   }
@@ -327,7 +329,7 @@ export const updateViewerList = (viewers) => {
     const viewerElem = document.createElement("div");
     const content = document.createElement("strong");
     content.textContent = viewer.nickname;
-    content.style = `color: #${viewer.colour}`;
+    content.style = `--user-color: #${viewer.colour}`;
     viewerElem.appendChild(content);
     listContainer.appendChild(viewerElem);
   }

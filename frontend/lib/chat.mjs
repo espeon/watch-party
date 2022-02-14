@@ -1,4 +1,5 @@
-import { setDebounce, setVideoTime, setPlaying } from "./watch-session.mjs";
+import { setDebounce, setVideoTime, setPlaying } from "./watch-session.mjs?v=9";
+import { emojify } from "./emojis.mjs?v=9";
 
 const setupChatboxEvents = (socket) => {
   // clear events by just reconstructing the form
@@ -236,7 +237,7 @@ export const logEventToChat = (event) => {
     case "ChatMessage": {
       const messageContent = document.createElement("span");
       messageContent.classList.add("message-content");
-      messageContent.textContent = event.data;
+      messageContent.append(...emojify(event.data));
       printChatMessage(
         "chat-message",
         event.user,

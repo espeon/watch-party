@@ -159,6 +159,13 @@ button.small-button {
   color: unset !important;
 }
 
+.emoji {
+  width: 2ch;
+  height: 2ch;
+  object-fit: contain;
+  margin-bottom: -0.35ch;
+}
+
 #chatbox {
   padding: 0.5em 2em;
   min-height: 8em;

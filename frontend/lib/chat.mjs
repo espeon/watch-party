@@ -1,10 +1,12 @@
+import { setDebounce, setVideoTime, setPlaying } from "./watch-session.mjs";
+
 const setupChatboxEvents = (socket) => {
   // clear events by just reconstructing the form
   const oldChatForm = document.querySelector("#chatbox-send");
   const chatForm = oldChatForm.cloneNode(true);
   oldChatForm.replaceWith(chatForm);
 
-  chatForm.addEventListener("submit", (e) => {
+  chatForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const input = chatForm.querySelector("input");
@@ -28,8 +30,35 @@ const setupChatboxEvents = (socket) => {
             );
             handled = true;
             break;
+          case "/sync":
+            const sessionId = window.location.hash.slice(1);
+            const { current_time_ms, is_playing } = await fetch(
+              `/sess/${sessionId}`
+            ).then((r) => r.json());
+
+            setDebounce();
+            setPlaying(is_playing);
+            setVideoTime(current_time_ms);
+
+            const syncMessageContent = document.createElement("span");
+            syncMessageContent.appendChild(
+              document.createTextNode("resynced you to ")
+            );
+            syncMessageContent.appendChild(
+              document.createTextNode(formatTime(current_time_ms))
+            );
+            printChatMessage("set-time", "/sync", "b57fdc", syncMessageContent);
+            handled = true;
+            break;
           case "/help":
-            // TODO: print help in chat
+            const helpMessageContent = document.createElement("span");
+            helpMessageContent.innerHTML =
+              "Available commands:<br>" +
+              "&emsp;<code>/help</code> - display this help message<br>" +
+              "&emsp;<code>/ping [message]</code> - ping all viewers<br>" +
+              "&emsp;<code>/sync</code> - resyncs you with other viewers";
+
+            printChatMessage("command-message", "/help", "b57fdc", helpMessageContent);
             handled = true;
             break;
           default:

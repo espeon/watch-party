@@ -1,5 +1,5 @@
-import { setupVideo } from "./video.mjs?v=8";
-import { setupChat, logEventToChat, updateViewerList } from "./chat.mjs?v=8";
+import { setupVideo } from "./video.mjs?v=9";
+import { setupChat, logEventToChat, updateViewerList } from "./chat.mjs?v=9";
 
 /**
  * @param {string} sessionId
@@ -22,7 +22,7 @@ const createWebSocket = (sessionId, nickname, colour) => {
 let outgoingDebounce = false;
 let outgoingDebounceCallbackId = null;
 
-const setDebounce = () => {
+export const setDebounce = () => {
   outgoingDebounce = true;
 
   if (outgoingDebounceCallbackId) {
@@ -35,19 +35,34 @@ const setDebounce = () => {
   }, 500);
 };
 
+export const setVideoTime = (time, video = null) => {
+  if (video == null) {
+    video = document.querySelector("video");
+  }
+
+  const timeSecs = time / 1000.0;
+  if (Math.abs(video.currentTime - timeSecs) > 0.5) {
+    video.currentTime = timeSecs;
+  }
+};
+
+export const setPlaying = async (playing, video = null) => {
+  if (video == null) {
+    video = document.querySelector("video");
+  }
+
+  if (playing) {
+    await video.play();
+  } else {
+    video.pause();
+  }
+};
+
 /**
  * @param {HTMLVideoElement} video
  * @param {WebSocket} socket
  */
 const setupIncomingEvents = (video, socket) => {
-  const setVideoTime = (time) => {
-    const timeSecs = time / 1000.0;
-
-    if (Math.abs(video.currentTime - timeSecs) > 0.5) {
-      video.currentTime = timeSecs;
-    }
-  };
-
   socket.addEventListener("message", async (messageEvent) => {
     try {
       const event = JSON.parse(messageEvent.data);
@@ -63,12 +78,11 @@ const setupIncomingEvents = (video, socket) => {
               video.pause();
             }
 
-            setVideoTime(event.data.time);
-
+            setVideoTime(event.data.time, video);
             break;
           case "SetTime":
             setDebounce();
-            setVideoTime(event.data);
+            setVideoTime(event.data, video);
             break;
           case "UpdateViewerList":
             updateViewerList(event.data);

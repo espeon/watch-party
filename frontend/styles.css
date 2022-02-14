@@ -150,9 +150,13 @@ button.small-button {
   font-size: 0.85em;
 }
 
+.chat-message.command-message{
+  font-size: 0.85em;
+}
+
 .chat-message.set-time > strong,
 .chat-message.set-playing > strong {
-  color: unset;
+  color: unset !important;
 }
 
 #chatbox {

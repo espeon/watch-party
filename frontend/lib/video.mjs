@@ -1,3 +1,27 @@
+const loadVolume = () => {
+  try {
+    const savedVolume = localStorage.getItem("watch-party-volume");
+    if (savedVolume != null && savedVolume != "") {
+      return +savedVolume;
+    }
+  } catch (_err) {
+    // Sometimes localStorage is blocked from use
+  }
+  // default
+  return 0.5;
+};
+
+/**
+ * @param {number} volume
+ */
+const saveVolume = (volume) => {
+  try {
+    localStorage.setItem("watch-party-volume", volume);
+  } catch (_err) {
+    // see loadVolume
+  }
+};
+
 /**
  * @param {string} videoUrl
  * @param {{name: string, url: string}[]} subtitles
@@ -6,8 +30,12 @@ const createVideoElement = (videoUrl, subtitles) => {
   const video = document.createElement("video");
   video.controls = true;
   video.autoplay = false;
-  video.volume = 0.5;
+  video.volume = loadVolume();
   video.crossOrigin = "anonymous";
+
+  video.addEventListener("volumechange", async () => {
+    saveVolume(video.volume);
+  });
 
   const source = document.createElement("source");
   source.src = videoUrl;
@@ -47,15 +75,15 @@ const createVideoElement = (videoUrl, subtitles) => {
           navigator.mediaSession.setActionHandler("skipad", null);
         } else {
           // disable media button support by ignoring the events
-          navigator.mediaSession.setActionHandler("play", () => { });
-          navigator.mediaSession.setActionHandler("pause", () => { });
-          navigator.mediaSession.setActionHandler("stop", () => { });
-          navigator.mediaSession.setActionHandler("seekbackward", () => { });
-          navigator.mediaSession.setActionHandler("seekforward", () => { });
-          navigator.mediaSession.setActionHandler("seekto", () => { });
-          navigator.mediaSession.setActionHandler("previoustrack", () => { });
-          navigator.mediaSession.setActionHandler("nexttrack", () => { });
-          navigator.mediaSession.setActionHandler("skipad", () => { });
+          navigator.mediaSession.setActionHandler("play", () => {});
+          navigator.mediaSession.setActionHandler("pause", () => {});
+          navigator.mediaSession.setActionHandler("stop", () => {});
+          navigator.mediaSession.setActionHandler("seekbackward", () => {});
+          navigator.mediaSession.setActionHandler("seekforward", () => {});
+          navigator.mediaSession.setActionHandler("seekto", () => {});
+          navigator.mediaSession.setActionHandler("previoustrack", () => {});
+          navigator.mediaSession.setActionHandler("nexttrack", () => {});
+          navigator.mediaSession.setActionHandler("skipad", () => {});
         }
         return;
       }

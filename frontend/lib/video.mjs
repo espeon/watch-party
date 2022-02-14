@@ -22,6 +22,30 @@ const saveVolume = (volume) => {
   }
 };
 
+const loadCaptionTrack = () => {
+  try {
+    const savedTrack = localStorage.getItem("watch-party-captions");
+    if (savedTrack != null && savedTrack != "") {
+      return +savedTrack;
+    }
+  } catch (_err) {
+    // Sometimes localStorage is blocked from use
+  }
+  // default
+  return -1;
+};
+
+/**
+ * @param {number} track
+ */
+const saveCaptionsTrack = (track) => {
+  try {
+    localStorage.setItem("watch-party-captions", track);
+  } catch (_err) {
+    // see loadCaptionsTrack
+  }
+};
+
 /**
  * @param {string} videoUrl
  * @param {{name: string, url: string}[]} subtitles
@@ -42,20 +66,33 @@ const createVideoElement = (videoUrl, subtitles) => {
 
   video.appendChild(source);
 
-  let first = true;
+  const storedTrack = loadCaptionTrack();
+  let id = 0;
   for (const { name, url } of subtitles) {
     const track = document.createElement("track");
     track.label = name;
     track.src = url;
     track.kind = "captions";
 
-    if (first) {
+    if (id == storedTrack) {
       track.default = true;
-      first = false;
     }
 
     video.appendChild(track);
+    id++;
   }
+
+  video.textTracks.addEventListener("change", async () => {
+    let id = 0;
+    for (const track of video.textTracks) {
+      if (track.mode != "disabled") {
+        saveCaptionsTrack(id);
+        return;
+      }
+      id++;
+    }
+    saveCaptionsTrack(-1);
+  });
 
   // watch for attribute changes on the video object to detect hiding/showing of controls
   // as far as i can tell this is the least hacky solutions to get control visibility change events

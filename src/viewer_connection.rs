@@ -51,7 +51,7 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, colour: String, 
     });
 
     let mut colour = colour;
-    if !colour.len() == 6 || !colour.chars().all(|x| x.is_ascii_hexdigit()) {
+    if colour.len() != 6 || !colour.chars().all(|x| x.is_ascii_hexdigit()) {
         colour = String::from("7ed0ff");
     }
     let nickname = truncate_str(&nickname, 50).to_string();
@@ -92,7 +92,7 @@ pub async fn ws_subscribe(session_uuid: Uuid, nickname: String, colour: String, 
         let event: WatchEventData = match event {
             WatchEventData::SetTime { from: _, to } => WatchEventData::SetTime {
                 from: Some(session.get_time_ms()),
-                to: to,
+                to,
             },
             _ => event,
         };

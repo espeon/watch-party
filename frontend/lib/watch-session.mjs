@@ -1,10 +1,11 @@
 import { setupVideo } from "./video.mjs?v=9";
 import { setupChat, logEventToChat, updateViewerList } from "./chat.mjs?v=9";
+import ReconnectingWebSocket from "./reconnecting-web-socket.mjs"
 
 /**
  * @param {string} sessionId
  * @param {string} nickname
- * @returns {WebSocket}
+ * @returns {ReconnectingWebSocket}
  */
 const createWebSocket = (sessionId, nickname, colour) => {
   const wsUrl = new URL(
@@ -13,8 +14,8 @@ const createWebSocket = (sessionId, nickname, colour) => {
       `&colour=${encodeURIComponent(colour)}`,
     window.location.href
   );
-  wsUrl.protocol = { "http:": "ws:", "https:": "wss:" }[wsUrl.protocol];
-  const socket = new WebSocket(wsUrl.toString());
+  wsUrl.protocol = "ws" + window.location.protocol.slice(4);
+  const socket = new ReconnectingWebSocket(wsUrl);
 
   return socket;
 };
@@ -60,7 +61,7 @@ export const setPlaying = async (playing, video = null) => {
 
 /**
  * @param {HTMLVideoElement} video
- * @param {WebSocket} socket
+ * @param {ReconnectingWebSocket} socket
  */
 const setupIncomingEvents = (video, socket) => {
   socket.addEventListener("message", async (messageEvent) => {
@@ -97,7 +98,7 @@ const setupIncomingEvents = (video, socket) => {
 
 /**
  * @param {HTMLVideoElement} video
- * @param {WebSocket} socket
+ * @param {ReconnectingWebSocket} socket
  */
 const setupOutgoingEvents = (video, socket) => {
   const currentVideoTime = () => (video.currentTime * 1000) | 0;
@@ -167,37 +168,63 @@ const setupOutgoingEvents = (video, socket) => {
  * @param {string} sessionId
  */
 export const joinSession = async (nickname, sessionId, colour) => {
+  // try { // we are handling errors in the join form.
+  const genericConnectionError = new Error("There was an issue getting the session information.");
+  window.location.hash = sessionId;
+  let response, video_url, subtitle_tracks, current_time_ms, is_playing;
   try {
-    window.location.hash = sessionId;
-
-    const { video_url, subtitle_tracks, current_time_ms, is_playing } =
-      await fetch(`/sess/${sessionId}`).then((r) => r.json());
-
-    const socket = createWebSocket(sessionId, nickname, colour);
-    socket.addEventListener("open", async () => {
-      const video = await setupVideo(
-        video_url,
-        subtitle_tracks,
-        current_time_ms,
-        is_playing
-      );
-
-      // By default, we should disable video controls if the video is already playing.
-      // This solves an issue where Safari users join and seek to 00:00:00 because of
-      // outgoing events.
-      if (current_time_ms != 0) {
-        video.controls = false;
-      }
-
-      setupOutgoingEvents(video, socket);
-      setupIncomingEvents(video, socket);
-      setupChat(socket);
-    });
-    // TODO: Close listener ?
-  } catch (err) {
-    // TODO: Show an error on the screen
-    console.error(err);
+    response = await fetch(`/sess/${sessionId}`);
+  } catch (e) {
+    console.error(e);
+    throw genericConnectionError;
   }
+  if(!response.ok) {
+    let error;
+    try {
+      ({ error } = await response.json());
+      if(!error) throw new Error();
+    } catch (e) {
+      console.error(e);
+      throw genericConnectionError;
+    }
+    throw new Error(error)
+  }
+  try {
+    ({ video_url, subtitle_tracks, current_time_ms, is_playing } = await response.json());
+  } catch (e) {
+    console.error(e);
+    throw genericConnectionError;
+  }
+
+  const socket = createWebSocket(sessionId, nickname, colour);
+  socket.addEventListener("open", async () => {
+    const video = await setupVideo(
+      video_url,
+      subtitle_tracks,
+      current_time_ms,
+      is_playing
+    );
+
+    // By default, we should disable video controls if the video is already playing.
+    // This solves an issue where Safari users join and seek to 00:00:00 because of
+    // outgoing events.
+    if (current_time_ms != 0) {
+      video.controls = false;
+    }
+
+    setupOutgoingEvents(video, socket);
+    setupIncomingEvents(video, socket);
+    setupChat(socket);
+  });
+  socket.addEventListener("reconnecting", e => {
+    console.log("Reconnecting...");
+  });
+  socket.addEventListener("reconnected", e => {
+    console.log("Reconnected.");
+  });
+  //} catch (e) {
+  //  alert(e.message)
+  //}
 };
 
 /**

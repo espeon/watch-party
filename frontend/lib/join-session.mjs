@@ -72,13 +72,18 @@ export const setupJoinSessionForm = () => {
     sessionId.value = window.location.hash.substring(1);
   }
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     button.disabled = true;
 
     saveNickname(nickname);
     saveColour(colour);
-    joinSession(nickname.value, sessionId.value, colour.value.replace(/^#/, ""));
+    try {
+      await joinSession(nickname.value, sessionId.value, colour.value.replace(/^#/, ""));
+    } catch (e) {
+      alert(e.message)
+	  button.disabled = false;
+    }
   });
 };

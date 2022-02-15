@@ -29,6 +29,7 @@ const setupChatboxEvents = (socket) => {
 	autocompleting = false;
   }
   messageInput.addEventListener("input", autocomplete)
+  messageInput.addEventListener("selectionchange", autocomplete);
 
   chatForm.addEventListener("submit", async (e) => {
     e.preventDefault();

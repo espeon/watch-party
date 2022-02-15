@@ -6,9 +6,9 @@ use warb::{hyper::StatusCode, Filter, Reply};
 use warp as warb; // i think it's funny
 
 mod events;
+mod utils;
 mod viewer_connection;
 mod watch_session;
-mod utils;
 
 use serde::Deserialize;
 
@@ -30,6 +30,22 @@ struct SubscribeQuery {
     colour: String,
 }
 
+async fn get_emoji_list() -> Result<impl warb::Reply, warb::Rejection> {
+    use tokio_stream::{wrappers::ReadDirStream, StreamExt};
+
+    let dir = tokio::fs::read_dir("frontend/emojis")
+        .await
+        .expect("Couldn't read emojis directory!");
+
+    let files = ReadDirStream::new(dir)
+        .filter_map(|r| r.ok())
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .collect::<Vec<_>>()
+        .await;
+
+    Ok(warb::reply::json(&files))
+}
+
 #[tokio::main]
 async fn main() {
     let start_session_route = warb::path!("start_session")
@@ -45,6 +61,8 @@ async fn main() {
 
             warb::reply::json(&json!({ "id": session_uuid.to_string(), "session": session_view }))
         });
+
+    let get_emoji_route = warb::path!("emojis").and_then(get_emoji_list);
 
     enum RequestedSession {
         Session(Uuid, WatchSession),
@@ -96,6 +114,7 @@ async fn main() {
     let routes = start_session_route
         .or(get_status_route)
         .or(ws_subscribe_route)
+        .or(get_emoji_route)
         .or(warb::path::end().and(warb::fs::file("frontend/index.html")))
         .or(warb::fs::dir("frontend"));
 

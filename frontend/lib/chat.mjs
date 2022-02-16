@@ -273,11 +273,9 @@ const printChatMessage = (eventType, user, colour, content) => {
   if (user != null) {
     const userName = document.createElement("strong");
     userName.style = `--user-color: #${colour}`;
-    userName.textContent = user;
+    userName.textContent = user + " ";
     chatMessage.appendChild(userName);
   }
-
-  chatMessage.appendChild(document.createTextNode(" "));
 
   if (content != null) {
     chatMessage.appendChild(content);

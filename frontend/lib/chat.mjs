@@ -6,18 +6,16 @@ import {
 import { emojify, emojis } from "./emojis.mjs?v=1e57e6";
 
 function setCaretPosition(elem, caretPos) {
-        if(elem.createTextRange) {
-            var range = elem.createTextRange();
-            range.move('character', caretPos);
-            range.select();
-        } else {
-            if(elem.selectionStart) {
-                elem.focus();
-                elem.setSelectionRange(caretPos, caretPos);
-            }
-            else
-                elem.focus();
-        }
+  if (elem.createTextRange) {
+    var range = elem.createTextRange();
+    range.move("character", caretPos);
+    range.select();
+  } else {
+    if (elem.selectionStart) {
+      elem.focus();
+      elem.setSelectionRange(caretPos, caretPos);
+    } else elem.focus();
+  }
 }
 
 const setupChatboxEvents = (socket) => {
@@ -57,21 +55,27 @@ const setupChatboxEvents = (socket) => {
             className: "emoji-option" + (i === 0 ? " selected" : ""),
             onmousedown: (e) => e.preventDefault(),
             onclick: () => {
-			  messageInput.value=prefix+replaceWith+" "+suffix;
-			  setCaretPosition(messageInput, (prefix+" "+replaceWith).length)
-			  },
+              messageInput.value = prefix + replaceWith + " " + suffix;
+              setCaretPosition(
+                messageInput,
+                (prefix + " " + replaceWith).length
+              );
+            },
             onmouseover: () => select(button),
             onfocus: () => select(button),
+            type: "button",
           });
           button.append(
-            (replaceWith[0]!==":"?Object.assign(document.createElement("span"), {
-              textContent: replaceWith,
-              className: "emoji",
-            }):Object.assign(new Image(), {
-              loading: "lazy",
-              src: `/emojis/${name}.png`,
-              className: "emoji",
-            })),
+            replaceWith[0] !== ":"
+              ? Object.assign(document.createElement("span"), {
+                  textContent: replaceWith,
+                  className: "emoji",
+                })
+              : Object.assign(new Image(), {
+                  loading: "lazy",
+                  src: `/emojis/${name}.png`,
+                  className: "emoji",
+                }),
             Object.assign(document.createElement("span"), { textContent: name })
           );
           return button;

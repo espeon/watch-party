@@ -13,7 +13,8 @@
   --fg-transparent: rgba(var(--fg-rgb), 0.25);
   --bg-transparent: rgba(var(--bg-rgb), 0.25);
   --autocomplete-bg: linear-gradient(
-      var(--fg-transparent), var(--fg-transparent)
+      var(--fg-transparent),
+      var(--fg-transparent)
     ),
     linear-gradient(var(--bg), var(--bg));
 }

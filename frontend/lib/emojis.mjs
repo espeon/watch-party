@@ -5,16 +5,21 @@ export async function emojify(text) {
   text.replace(/:([^\s:]+):/g, (match, name, index) => {
     if (last <= index)
       nodes.push(document.createTextNode(text.slice(last, index)));
-    if (!emojiList.includes(name)) {
+    let emoji = emojiList.find((e) => e[0] == name);
+    if (!emoji) {
       nodes.push(document.createTextNode(match));
     } else {
-      nodes.push(
-        Object.assign(new Image(), {
-          src: `/emojis/${name}.png`,
-          className: "emoji",
-          alt: name,
-        })
-      );
+      if (emoji[1][0] !== ":") {
+        nodes.push(document.createTextNode(emoji[1]));
+      } else {
+        nodes.push(
+          Object.assign(new Image(), {
+            src: `/emojis/${name}.png`,
+            className: "emoji",
+            alt: name,
+          })
+        );
+      }
     }
     last = index + match.length;
   });
@@ -24,7 +29,6 @@ export async function emojify(text) {
 export const emojis = Promise.all([
   fetch("/emojis")
     .then((e) => e.json())
-    .then((e) => e.map((e) => [e.slice(0, -4), ":"+e.slice(0, -4)+":"])),
-  fetch('/emojis/unicode.json')
-    .then((e) => e.json())
-]).then(e=>e.flat(1));
+    .then((e) => e.map((e) => [e.slice(0, -4), ":" + e.slice(0, -4) + ":"])),
+  fetch("/emojis/unicode.json").then((e) => e.json()),
+]).then((e) => e.flat(1));

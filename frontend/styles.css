@@ -212,14 +212,14 @@ button.small-button {
 }
 
 #chatbox {
-  padding: 0.5em 2em;
+  padding: 0.5em 0.5em;
   overflow-y: scroll;
   flex-shrink: 1;
   flex-grow: 1;
 }
 
 #viewer-list {
-  padding: 0.5em 2em;
+  padding: 0.5em 0.5em;
   /* TODO: turn this into max-height instead of fixed height without breaking the chatbox height */
   overflow-y: scroll;
   border-bottom: var(--fg);
@@ -238,7 +238,7 @@ button.small-button {
 }
 
 #chatbox-send {
-  padding: 0 2em;
+  padding: 0 0.5em;
   padding-bottom: 0.5em;
   position: relative;
 }

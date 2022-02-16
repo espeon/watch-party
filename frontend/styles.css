@@ -150,6 +150,11 @@ button.small-button {
   padding: 1rem;
 }
 
+#join-session-form > *:first-child,
+#create-session-form > *:first-child {
+  margin-top: 0;
+}
+
 #post-create-message {
   display: none;
   width: 100%;

@@ -1,6 +1,23 @@
 import { setDebounce, setVideoTime, setPlaying } from "./watch-session.mjs?v=9";
 import { emojify, emojis } from "./emojis.mjs?v=9";
 
+function insertAtCursor(input, textToInsert) {
+  const isSuccess = document.execCommand("insertText", false, textToInsert);
+
+  // Firefox (non-standard method)
+  if (!isSuccess && typeof input.setRangeText === "function") {
+    const start = input.selectionStart;
+    input.setRangeText(textToInsert);
+    // update cursor to be at the end of insertion
+    input.selectionStart = input.selectionEnd = start + textToInsert.length;
+
+    // Notify any possible listeners of the change
+    const e = document.createEvent("UIEvent");
+    e.initEvent("input", true, false);
+    input.dispatchEvent(e);
+  }
+}
+
 const setupChatboxEvents = (socket) => {
   // clear events by just reconstructing the form
   const oldChatForm = document.querySelector("#chatbox-send");
@@ -8,28 +25,80 @@ const setupChatboxEvents = (socket) => {
   const messageInput = chatForm.querySelector("input");
   const emojiAutocomplete = chatForm.querySelector("#emoji-autocomplete");
   oldChatForm.replaceWith(chatForm);
-  
+
   let autocompleting = false;
-  
-  const replaceMessage = message => () => {
+
+  const replaceMessage = (message) => () => {
     messageInput.value = message;
-	autocomplete();
-  }
-  async function autocomplete(){
-    if(autocompleting) return;
-	emojiAutocomplete.textContent = "";
+    autocomplete();
+  };
+  async function autocomplete() {
+    if (autocompleting) return;
+    emojiAutocomplete.textContent = "";
     autocompleting = true;
     let text = messageInput.value.slice(0, messageInput.selectionStart);
-	const match = text.match(/(:[^\s:]+)?:[^\s:]*$/);
-	if(!match || match[1]) return autocompleting = false; // We don't need to autocomplete.
-	const prefix = text.slice(0, match.index);
-	const search = text.slice(match.index + 1);
-	const suffix = messageInput.value.slice(messageInput.selectionStart);
-	emojiAutocomplete.append(...(await emojis).filter(e => e.toLowerCase().startsWith(search.toLowerCase())).map(e => Object.assign(document.createElement("button"), {className: "emoji-option", textContent: e, onclick: replaceMessage(prefix + ":" + e + ":" + suffix)})))
-	autocompleting = false;
+    const match = text.match(/(:[^\s:]+)?:([^\s:]*)$/);
+    if (!match || match[1]) return (autocompleting = false); // We don't need to autocomplete.
+    const prefix = text.slice(0, match.index);
+    const search = text.slice(match.index + 1);
+    const suffix = messageInput.value.slice(messageInput.selectionStart);
+    const select = (button) => {
+      const selected = document.querySelector(".emoji-option.selected");
+      if (selected) selected.classList.remove("selected");
+      button.classList.add("selected");
+    };
+    emojiAutocomplete.append(
+      ...(await emojis)
+        .filter((e) => e.toLowerCase().startsWith(search.toLowerCase()))
+        .map((name, i) => {
+          const button = Object.assign(document.createElement("button"), {
+            className: "emoji-option" + (i === 0 ? " selected" : ""),
+            onmousedown: (e) => e.preventDefault(),
+            onmouseup: () =>
+              insertAtCursor(button, name.slice(match[2].length) + ": "),
+            onmouseover: () => select(button),
+            onfocus: () => select(button),
+          });
+          button.append(
+            Object.assign(new Image(), {
+              loading: "lazy",
+              src: `/emojis/${name}.png`,
+              className: "emoji",
+            }),
+            Object.assign(document.createElement("span"), { textContent: name })
+          );
+          return button;
+        })
+    );
+    if (emojiAutocomplete.children[0])
+      emojiAutocomplete.children[0].scrollIntoView();
+    autocompleting = false;
   }
-  messageInput.addEventListener("input", autocomplete)
+  messageInput.addEventListener("input", autocomplete);
   messageInput.addEventListener("selectionchange", autocomplete);
+  messageInput.addEventListener("keydown", (event) => {
+    if (event.key == "ArrowUp" || event.key == "ArrowDown") {
+      let selected = document.querySelector(".emoji-option.selected");
+      if (!selected) return;
+      event.preventDefault();
+      selected.classList.remove("selected");
+      selected =
+        event.key == "ArrowDown"
+          ? selected.nextElementSibling || selected.parentElement.children[0]
+          : selected.previousElementSibling ||
+            selected.parentElement.children[
+              selected.parentElement.children.length - 1
+            ];
+      selected.classList.add("selected");
+      selected.scrollIntoView({ scrollMode: "if-needed", block: "nearest" });
+    }
+    if (event.key == "Tab") {
+      let selected = document.querySelector(".emoji-option.selected");
+      if (!selected) return;
+      event.preventDefault();
+      selected.onmouseup();
+    }
+  });
 
   chatForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -81,7 +150,12 @@ const setupChatboxEvents = (socket) => {
               "&emsp;<code>/ping [message]</code> - ping all viewers<br>" +
               "&emsp;<code>/sync</code> - resyncs you with other viewers";
 
-            printChatMessage("command-message", "/help", "b57fdc", helpMessageContent);
+            printChatMessage(
+              "command-message",
+              "/help",
+              "b57fdc",
+              helpMessageContent
+            );
             handled = true;
             break;
           default:
@@ -114,8 +188,7 @@ export const setupChat = async (socket) => {
   window.addEventListener("keydown", (event) => {
     try {
       const isSelectionEmpty = window.getSelection().toString().length === 0;
-      if (event.code.match(/Key\w/) && isSelectionEmpty)
-        messageInput.focus();
+      if (event.code.match(/Key\w/) && isSelectionEmpty) messageInput.focus();
     } catch (_err) {}
   });
 };

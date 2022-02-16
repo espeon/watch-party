@@ -80,10 +80,14 @@ export const setupJoinSessionForm = () => {
     saveNickname(nickname);
     saveColour(colour);
     try {
-      await joinSession(nickname.value, sessionId.value, colour.value.replace(/^#/, ""));
+      await joinSession(
+        nickname.value,
+        sessionId.value,
+        colour.value.replace(/^#/, "")
+      );
     } catch (e) {
-      alert(e.message)
-	  button.disabled = false;
+      alert(e.message);
+      button.disabled = false;
     }
   });
 };

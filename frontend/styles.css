@@ -12,8 +12,14 @@
   --accent: rgb(var(--accent-rgb));
   --fg-transparent: rgba(var(--fg-rgb), 0.125);
   --bg-transparent: rgba(var(--bg-rgb), 0.125);
-  --chat-bg: linear-gradient(var(--fg-transparent), var(--fg-transparent)), linear-gradient(var(--bg), var(--bg));
-  --autocomplete-bg: linear-gradient(var(--fg-transparent), var(--fg-transparent)), linear-gradient(var(--fg-transparent), var(--fg-transparent)), linear-gradient(var(--bg), var(--bg));
+  --chat-bg: linear-gradient(var(--fg-transparent), var(--fg-transparent)),
+    linear-gradient(var(--bg), var(--bg));
+  --autocomplete-bg: linear-gradient(
+      var(--fg-transparent),
+      var(--fg-transparent)
+    ),
+    linear-gradient(var(--fg-transparent), var(--fg-transparent)),
+    linear-gradient(var(--bg), var(--bg));
 }
 
 html {
@@ -158,13 +164,19 @@ button.small-button {
   overflow-wrap: break-word;
 }
 
-.chat-message > strong, #viewer-list strong {
+.chat-message > strong,
+#viewer-list strong {
   color: var(--user-color, var(--default-user-color));
 }
 
 @supports (-webkit-background-clip: text) {
-  .chat-message > strong, #viewer-list strong {
-    background: linear-gradient(var(--fg-transparent), var(--fg-transparent)), linear-gradient(var(--user-color, var(--default-user-color)), var(--user-color, var(--default-user-color)));
+  .chat-message > strong,
+  #viewer-list strong {
+    background: linear-gradient(var(--fg-transparent), var(--fg-transparent)),
+      linear-gradient(
+        var(--user-color, var(--default-user-color)),
+        var(--user-color, var(--default-user-color))
+      );
     -webkit-background-clip: text;
     color: transparent !important;
   }
@@ -183,7 +195,7 @@ button.small-button {
   font-size: 0.85em;
 }
 
-.chat-message.command-message{
+.chat-message.command-message {
   font-size: 0.85em;
 }
 
@@ -240,9 +252,11 @@ button.small-button {
   position: absolute;
   bottom: 3.25rem;
   background-image: var(--autocomplete-bg);
-  padding: 0.25rem;
   border-radius: 6px;
   width: calc(100% - 4.5rem);
+  max-height: 8.5rem;
+  overflow-y: auto;
+  clip-path: inset(0 0 0 0 round 8px);
 }
 
 #emoji-autocomplete:empty {
@@ -253,17 +267,29 @@ button.small-button {
   background: transparent;
   font-size: 0.75rem;
   text-align: left;
-  margin: 0 0 0.25rem;
+  margin: 0 0.25rem;
   border-radius: 4px;
-  width: 100%;
+  width: calc(100% - 0.5rem);
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  scroll-margin: 0.25rem;
 }
-
-.emoji-option:hover, .emoji-option:focus {
-  background: var(--fg-transparent);
+.emoji-option:first-child {
+  margin-top: 0.25rem;
 }
-
 .emoji-option:last-child {
-  margin: 0;
+  margin-bottom: 0.25rem;
+}
+
+.emoji-option .emoji {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0 0.5rem 0 0;
+}
+
+.emoji-option.selected {
+  background: var(--fg-transparent);
 }
 
 #join-session-colour {
@@ -280,7 +306,10 @@ button.small-button {
   cursor: pointer;
 }
 
-input[type="color"]::-moz-color-swatch, input[type="color"]::-webkit-color-swatch, input[type="color"]::-webkit-color-swatch-wrapper { /* This *should* be working in Chrome, but it doesn't for reasons that are beyond me. */
+input[type="color"]::-moz-color-swatch,
+input[type="color"]::-webkit-color-swatch,
+input[type="color"]::-webkit-color-swatch-wrapper {
+  /* This *should* be working in Chrome, but it doesn't for reasons that are beyond me. */
   border: none;
   margin: 0;
   padding: 0;

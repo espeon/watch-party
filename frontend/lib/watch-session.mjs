@@ -1,6 +1,6 @@
 import { setupVideo } from "./video.mjs?v=9";
 import { setupChat, logEventToChat, updateViewerList } from "./chat.mjs?v=9";
-import ReconnectingWebSocket from "./reconnecting-web-socket.mjs"
+import ReconnectingWebSocket from "./reconnecting-web-socket.mjs";
 
 /**
  * @param {string} sessionId
@@ -169,7 +169,9 @@ const setupOutgoingEvents = (video, socket) => {
  */
 export const joinSession = async (nickname, sessionId, colour) => {
   // try { // we are handling errors in the join form.
-  const genericConnectionError = new Error("There was an issue getting the session information.");
+  const genericConnectionError = new Error(
+    "There was an issue getting the session information."
+  );
   window.location.hash = sessionId;
   let response, video_url, subtitle_tracks, current_time_ms, is_playing;
   try {
@@ -178,19 +180,20 @@ export const joinSession = async (nickname, sessionId, colour) => {
     console.error(e);
     throw genericConnectionError;
   }
-  if(!response.ok) {
+  if (!response.ok) {
     let error;
     try {
       ({ error } = await response.json());
-      if(!error) throw new Error();
+      if (!error) throw new Error();
     } catch (e) {
       console.error(e);
       throw genericConnectionError;
     }
-    throw new Error(error)
+    throw new Error(error);
   }
   try {
-    ({ video_url, subtitle_tracks, current_time_ms, is_playing } = await response.json());
+    ({ video_url, subtitle_tracks, current_time_ms, is_playing } =
+      await response.json());
   } catch (e) {
     console.error(e);
     throw genericConnectionError;
@@ -216,10 +219,10 @@ export const joinSession = async (nickname, sessionId, colour) => {
     setupIncomingEvents(video, socket);
     setupChat(socket);
   });
-  socket.addEventListener("reconnecting", e => {
+  socket.addEventListener("reconnecting", (e) => {
     console.log("Reconnecting...");
   });
-  socket.addEventListener("reconnected", e => {
+  socket.addEventListener("reconnected", (e) => {
     console.log("Reconnected.");
   });
   //} catch (e) {

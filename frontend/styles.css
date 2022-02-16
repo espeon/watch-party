@@ -10,7 +10,7 @@
   --bg: rgb(var(--bg-rgb));
   --default-user-color: rgb(126, 208, 255);
   --accent: rgb(var(--accent-rgb));
-  --fg-transparent: rgba(var(--fg-rgb), 0.125);
+  --fg-transparent: rgba(var(--fg-rgb), 0.033);
   --bg-transparent: rgba(var(--bg-rgb), 0.125);
   --chat-bg: linear-gradient(var(--fg-transparent), var(--fg-transparent)),
     linear-gradient(var(--bg), var(--bg));
@@ -217,14 +217,14 @@ button.small-button {
 }
 
 #chatbox {
-  padding: 0.5em 0.5em;
+  padding: 0.5em 1em;
   overflow-y: scroll;
   flex-shrink: 1;
   flex-grow: 1;
 }
 
 #viewer-list {
-  padding: 0.5em 0.5em;
+  padding: 0.5em 1em;
   /* TODO: turn this into max-height instead of fixed height without breaking the chatbox height */
   overflow-y: scroll;
   border-bottom: var(--fg);
@@ -238,12 +238,12 @@ button.small-button {
   flex-direction: column;
   flex-grow: 0;
   flex-shrink: 1;
-  flex-basis: 400px;
+  flex-basis: 55ch;
   overflow: hidden;
 }
 
 #chatbox-send {
-  padding: 0 0.5em;
+  padding: 0 1em;
   padding-bottom: 0.5em;
   position: relative;
 }
@@ -326,7 +326,6 @@ input[type="color"]::-webkit-color-swatch-wrapper {
   }
 
   #chatbox-container {
-    width: 400px;
     height: 100vh !important;
   }
 

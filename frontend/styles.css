@@ -10,15 +10,11 @@
   --bg: rgb(var(--bg-rgb));
   --default-user-color: rgb(126, 208, 255);
   --accent: rgb(var(--accent-rgb));
-  --fg-transparent: rgba(var(--fg-rgb), 0.033);
-  --bg-transparent: rgba(var(--bg-rgb), 0.125);
-  --chat-bg: linear-gradient(var(--fg-transparent), var(--fg-transparent)),
-    linear-gradient(var(--bg), var(--bg));
+  --fg-transparent: rgba(var(--fg-rgb), 0.25);
+  --bg-transparent: rgba(var(--bg-rgb), 0.25);
   --autocomplete-bg: linear-gradient(
-      var(--fg-transparent),
-      var(--fg-transparent)
+      var(--fg-transparent), var(--fg-transparent)
     ),
-    linear-gradient(var(--fg-transparent), var(--fg-transparent)),
     linear-gradient(var(--bg), var(--bg));
 }
 
@@ -227,14 +223,14 @@ button.small-button {
   padding: 0.5em 1em;
   /* TODO: turn this into max-height instead of fixed height without breaking the chatbox height */
   overflow-y: scroll;
-  border-bottom: var(--fg);
+  border-bottom: var(--fg-transparent);
   border-bottom-style: solid;
   max-height: 4rem;
   flex-shrink: 0;
 }
 
 #chatbox-container {
-  background-image: var(--chat-bg);
+  background-color: var(--bg);
   flex-direction: column;
   flex-grow: 0;
   flex-shrink: 1;
@@ -258,7 +254,7 @@ button.small-button {
   bottom: 3.25rem;
   background-image: var(--autocomplete-bg);
   border-radius: 6px;
-  width: calc(100% - 4.5rem);
+  width: calc(100% - 2rem);
   max-height: 8.5rem;
   overflow-y: auto;
   clip-path: inset(0 0 0 0 round 8px);

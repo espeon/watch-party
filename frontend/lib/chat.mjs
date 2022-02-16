@@ -286,7 +286,7 @@ const formatTime = (ms) => {
   }:${seconds < 10 ? "0" + seconds : seconds}`;
 };
 
-export const logEventToChat = (event) => {
+export const logEventToChat = async (event) => {
   if (checkDebounce(event)) {
     return;
   }
@@ -313,7 +313,7 @@ export const logEventToChat = (event) => {
     case "ChatMessage": {
       const messageContent = document.createElement("span");
       messageContent.classList.add("message-content");
-      messageContent.append(...emojify(event.data));
+      messageContent.append(...(await emojify(event.data)));
       printChatMessage(
         "chat-message",
         event.user,

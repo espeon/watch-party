@@ -2,8 +2,8 @@ import {
   setDebounce,
   setVideoTime,
   setPlaying,
-} from "./watch-session.mjs?v=e9a1b";
-import { emojify, emojis } from "./emojis.mjs?v=e9a1b";
+} from "./watch-session.mjs?v=1e57e6";
+import { emojify, emojis } from "./emojis.mjs?v=1e57e6";
 
 function insertAtCursor(input, textToInsert) {
   const isSuccess = document.execCommand("insertText", false, textToInsert);

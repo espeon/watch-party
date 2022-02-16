@@ -58,7 +58,7 @@ const setupChatboxEvents = (socket) => {
           const button = Object.assign(document.createElement("button"), {
             className: "emoji-option" + (i === 0 ? " selected" : ""),
             onmousedown: (e) => e.preventDefault(),
-            onmouseup: () =>
+            onclick: () =>
               insertAtCursor(button, name.slice(match[2].length) + ": "),
             onmouseover: () => select(button),
             onfocus: () => select(button),
@@ -100,7 +100,7 @@ const setupChatboxEvents = (socket) => {
       let selected = document.querySelector(".emoji-option.selected");
       if (!selected) return;
       event.preventDefault();
-      selected.onmouseup();
+      selected.onclick();
     }
   });
 

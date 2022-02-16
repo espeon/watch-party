@@ -21,6 +21,10 @@ export async function emojify(text) {
   if (last < text.length) nodes.push(document.createTextNode(text.slice(last)));
   return nodes;
 }
-export const emojis = fetch("/emojis")
-  .then((e) => e.json())
-  .then((e) => e.map((e) => e.slice(0, -4)));
+export const emojis = Promise.all([
+  fetch("/emojis")
+    .then((e) => e.json())
+    .then((e) => e.map((e) => [e.slice(0, -4), ":"+e.slice(0, -4)+":"])),
+  fetch('/emojis/unicode.json')
+    .then((e) => e.json())
+]).then(e=>e.flat(1));

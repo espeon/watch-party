@@ -5,21 +5,19 @@ import {
 } from "./watch-session.mjs?v=1e57e6";
 import { emojify, emojis } from "./emojis.mjs?v=1e57e6";
 
-function insertAtCursor(input, textToInsert) {
-  const isSuccess = document.execCommand("insertText", false, textToInsert);
-
-  // Firefox (non-standard method)
-  if (!isSuccess && typeof input.setRangeText === "function") {
-    const start = input.selectionStart;
-    input.setRangeText(textToInsert);
-    // update cursor to be at the end of insertion
-    input.selectionStart = input.selectionEnd = start + textToInsert.length;
-
-    // Notify any possible listeners of the change
-    const e = document.createEvent("UIEvent");
-    e.initEvent("input", true, false);
-    input.dispatchEvent(e);
-  }
+function setCaretPosition(elem, caretPos) {
+        if(elem.createTextRange) {
+            var range = elem.createTextRange();
+            range.move('character', caretPos);
+            range.select();
+        } else {
+            if(elem.selectionStart) {
+                elem.focus();
+                elem.setSelectionRange(caretPos, caretPos);
+            }
+            else
+                elem.focus();
+        }
 }
 
 const setupChatboxEvents = (socket) => {
@@ -53,22 +51,27 @@ const setupChatboxEvents = (socket) => {
     };
     emojiAutocomplete.append(
       ...(await emojis)
-        .filter((e) => e.toLowerCase().startsWith(search.toLowerCase()))
-        .map((name, i) => {
+        .filter(([name]) => name.toLowerCase().startsWith(search.toLowerCase()))
+        .map(([name, replaceWith], i) => {
           const button = Object.assign(document.createElement("button"), {
             className: "emoji-option" + (i === 0 ? " selected" : ""),
             onmousedown: (e) => e.preventDefault(),
-            onclick: () =>
-              insertAtCursor(button, name.slice(match[2].length) + ": "),
+            onclick: () => {
+			  messageInput.value=prefix+replaceWith+" "+suffix;
+			  setCaretPosition(messageInput, (prefix+" "+replaceWith).length)
+			  },
             onmouseover: () => select(button),
             onfocus: () => select(button),
           });
           button.append(
-            Object.assign(new Image(), {
+            (replaceWith[0]!==":"?Object.assign(document.createElement("span"), {
+              textContent: replaceWith,
+              className: "emoji",
+            }):Object.assign(new Image(), {
               loading: "lazy",
               src: `/emojis/${name}.png`,
               className: "emoji",
-            }),
+            })),
             Object.assign(document.createElement("span"), { textContent: name })
           );
           return button;

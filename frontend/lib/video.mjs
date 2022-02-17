@@ -109,7 +109,6 @@ const createVideoElement = (videoUrl, subtitles) => {
           navigator.mediaSession.setActionHandler("seekto", null);
           navigator.mediaSession.setActionHandler("previoustrack", null);
           navigator.mediaSession.setActionHandler("nexttrack", null);
-          navigator.mediaSession.setActionHandler("skipad", null);
         } else {
           // disable media button support by ignoring the events
           navigator.mediaSession.setActionHandler("play", () => {});
@@ -120,7 +119,6 @@ const createVideoElement = (videoUrl, subtitles) => {
           navigator.mediaSession.setActionHandler("seekto", () => {});
           navigator.mediaSession.setActionHandler("previoustrack", () => {});
           navigator.mediaSession.setActionHandler("nexttrack", () => {});
-          navigator.mediaSession.setActionHandler("skipad", () => {});
         }
         return;
       }

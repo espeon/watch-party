@@ -49,7 +49,7 @@ video {
 }
 
 #video-container {
-  flex-grow: 1;
+  flex-grow: 0;
   flex-shrink: 1;
   display: none;
 }
@@ -233,7 +233,7 @@ button.small-button {
 #chatbox-container {
   background-color: var(--bg);
   flex-direction: column;
-  flex-grow: 0;
+  flex-grow: 1;
   flex-shrink: 1;
   flex-basis: 55ch;
   overflow: hidden;
@@ -329,6 +329,11 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 
   #chatbox-container {
     height: 100vh !important;
+    flex-grow: 0;
+  }
+
+  #video-container {
+    flex-grow: 1;
   }
 
   #chatbox {

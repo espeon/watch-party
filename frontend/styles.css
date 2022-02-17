@@ -235,7 +235,8 @@ button.small-button {
   flex-direction: column;
   flex-grow: 1;
   flex-shrink: 1;
-  flex-basis: 55ch;
+  flex-basis: 36ch;
+  min-width: 36ch;
   overflow: hidden;
 }
 

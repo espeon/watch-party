@@ -1,4 +1,4 @@
-import { createSession } from "./watch-session.mjs?v=19ef791";
+import { createSession } from "./watch-session.mjs?v=a6a856c";
 
 export const setupCreateSessionForm = () => {
   const form = document.querySelector("#create-session-form");

@@ -2,8 +2,8 @@ import {
   setDebounce,
   setVideoTime,
   setPlaying,
-} from "./watch-session.mjs?v=19ef791";
-import { emojify, findEmojis } from "./emojis.mjs?v=19ef791";
+} from "./watch-session.mjs?v=a6a856c";
+import { emojify, findEmojis } from "./emojis.mjs?v=a6a856c";
 
 function setCaretPosition(elem, caretPos) {
   if (elem.createTextRange) {

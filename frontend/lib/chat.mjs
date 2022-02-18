@@ -64,6 +64,7 @@ const setupChatboxEvents = (socket) => {
             onmouseover: () => select(button),
             onfocus: () => select(button),
             type: "button",
+            title: name,
           });
           button.append(
             replaceWith[0] !== ":"
@@ -76,7 +77,10 @@ const setupChatboxEvents = (socket) => {
                   src: `/emojis/${name}${ext}`,
                   className: "emoji",
                 }),
-            Object.assign(document.createElement("span"), { textContent: name })
+            Object.assign(document.createElement("span"), {
+              textContent: name,
+              className: "emoji-name",
+            })
           );
           return button;
         })

@@ -171,6 +171,7 @@ button.small-button {
   color: var(--user-color, var(--default-user-color));
 }
 
+/*
 @supports (-webkit-background-clip: text) {
   .chat-message > strong,
   #viewer-list strong {
@@ -183,6 +184,7 @@ button.small-button {
     color: transparent !important;
   }
 }
+*/
 
 .chat-message.user-join,
 .chat-message.user-leave,
@@ -294,6 +296,7 @@ button.small-button {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .emoji-option.selected {

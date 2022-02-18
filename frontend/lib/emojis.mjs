@@ -53,7 +53,7 @@ export async function findEmojis(search) {
   await emojisLoaded;
   let groups = [[], []];
   if (search.length < 1) {
-    for (let letter in emojis)
+    for (let letter of Object.keys(emojis).sort())
       for (let emoji of emojis[letter]) {
         (emoji[1][0] === ":" ? groups[0] : groups[1]).push(emoji);
       }

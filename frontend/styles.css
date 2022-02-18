@@ -299,6 +299,11 @@ button.small-button {
   flex-shrink: 0;
 }
 
+.emoji-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .emoji-option.selected {
   background: var(--fg-transparent);
 }

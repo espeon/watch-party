@@ -277,32 +277,12 @@ button.small-button {
   align-items: center;
   padding: 0.25rem 0.5rem;
   scroll-margin: 0.25rem;
-  scroll-margin-bottom: 2rem;
 }
 .emoji-option:first-child {
   margin-top: 0.25rem;
 }
 .emoji-option:last-child {
-  margin-bottom: 2rem;
-}
-
-#emoji-autocomplete::after {
-  position: fixed;
-  bottom: 3.25rem;
-  content: "Press Tab to autocomplete";
-  background-image: var(--autocomplete-bg);
-  padding: 0.125rem 0.25rem;
-  font-size: 0.75rem;
-  box-shadow: 0 0.75rem 0.25rem 1rem var(--fg-transparent), 0 0.75rem 0.25rem 1rem var(--bg);
-  height: 1rem;
-  display: flex;
-  right: 1rem;
-  width: 100%;
-  text-align: right;
-  align-items: center;
-  justify-content: right;
-  color: var(--fg-transparent);
-  text-shadow: 0 0 0 var(--fg-transparent);
+  margin-bottom: 0.25rem;
 }
 
 .emoji-option .emoji {

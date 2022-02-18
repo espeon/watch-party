@@ -50,7 +50,7 @@ const setupChatboxEvents = (socket) => {
     emojiAutocomplete.append(
       ...(await emojis)
         .filter(([name]) => name.toLowerCase().startsWith(search.toLowerCase()))
-        .map(([name, replaceWith], i) => {
+        .map(([name, replaceWith, ext], i) => {
           const button = Object.assign(document.createElement("button"), {
             className: "emoji-option" + (i === 0 ? " selected" : ""),
             onmousedown: (e) => e.preventDefault(),
@@ -73,7 +73,7 @@ const setupChatboxEvents = (socket) => {
                 })
               : Object.assign(new Image(), {
                   loading: "lazy",
-                  src: `/emojis/${name}.png`,
+                  src: `/emojis/${name}${ext}`,
                   className: "emoji",
                 }),
             Object.assign(document.createElement("span"), { textContent: name })

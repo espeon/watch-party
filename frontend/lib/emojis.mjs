@@ -14,7 +14,7 @@ export async function emojify(text) {
       } else {
         nodes.push(
           Object.assign(new Image(), {
-            src: `/emojis/${name}.png`,
+            src: `/emojis/${name}${emoji[2]}`,
             className: "emoji",
             alt: name,
           })
@@ -29,6 +29,6 @@ export async function emojify(text) {
 export const emojis = Promise.all([
   fetch("/emojis")
     .then((e) => e.json())
-    .then((e) => e.map((e) => [e.slice(0, -4), ":" + e.slice(0, -4) + ":"])),
+    .then((e) => e.map((e) => [e.slice(0, -4), ":" + e.slice(0, -4) + ":", e.slice(-4)])),
   fetch("/emojis/unicode.json").then((e) => e.json()),
 ]).then((e) => e.flat(1));

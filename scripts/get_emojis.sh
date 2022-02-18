@@ -20,4 +20,4 @@ read token
 printf "\n" 1>&2
 stty echo
 
-curl "https://discord.com/api/v9/guilds/${guild}/emojis" -H "Authorization: $token"  |  jq --raw-output 'map("curl '"'"'https://cdn.discordapp.com/emojis/" + .id + ".png?size=48&quality=lossless'"'"' -o '"'${emojiFolder}/"'" + .name + ".png'"'"'") | join("\n")' | sh
+curl "https://discord.com/api/v9/guilds/${guild}/emojis" -H "Authorization: $token"  |  jq  --raw-output 'map((if .animated then ".gif" else ".png" end) as $ext | "curl '"'"'https://cdn.discordapp.com/emojis/" + .id + $ext + "?size=48&quality=lossless'"'"' -o '"'${emojiFolder}/"'" + .name + $ext + "'"'"'") | join("\n")' | sh

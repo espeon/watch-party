@@ -153,13 +153,23 @@ const setupChatboxEvents = (socket) => {
             printChatMessage("set-time", "/sync", "b57fdc", syncMessageContent);
             handled = true;
             break;
+          case "/shrug":
+            socket.send(
+              JSON.stringify({
+                op: "ChatMessage",
+                data: `${args} ¯\\_(ツ)_/¯`.trim(),
+              })
+            );
+            handled = true;
+            break;
           case "/help":
             const helpMessageContent = document.createElement("span");
             helpMessageContent.innerHTML =
               "Available commands:<br>" +
               "&emsp;<code>/help</code> - display this help message<br>" +
               "&emsp;<code>/ping [message]</code> - ping all viewers<br>" +
-              "&emsp;<code>/sync</code> - resyncs you with other viewers";
+              "&emsp;<code>/sync</code> - resyncs you with other viewers<br>" +
+              "&emsp;<code>/shrug</code> - appends ¯\\_(ツ)_/¯ to your message";
 
             printChatMessage(
               "command-message",

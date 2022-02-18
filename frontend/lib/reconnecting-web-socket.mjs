@@ -11,7 +11,6 @@ export default class ReconnectingWebSocket {
     this._lastConnect = 0;
     this._socket = null;
     this._unsent = [];
-    this._connect(true);
   }
   _connect(first) {
     if (this._socket)
@@ -26,9 +25,9 @@ export default class ReconnectingWebSocket {
     }
     this._socket.addEventListener("close", () => this._reconnect());
     this._socket.addEventListener("error", () => this._reconnect());
-    this._socket.addEventListener("message", ({ data }) =>
-      this._eventTarget.dispatchEvent(new MessageEvent("message", { data }))
-    );
+    this._socket.addEventListener("message", ({ data }) => {
+      this._eventTarget.dispatchEvent(new MessageEvent("message", { data }));
+    });
     this._socket.addEventListener("open", (e) => {
       if (first) this._eventTarget.dispatchEvent(new Event("open"));
       if (this._reconnecting)

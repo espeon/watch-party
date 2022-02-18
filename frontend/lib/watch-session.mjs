@@ -71,7 +71,6 @@ const setupIncomingEvents = (video, socket) => {
   socket.addEventListener("message", async (messageEvent) => {
     try {
       const event = JSON.parse(messageEvent.data);
-
       if (!event.reflected) {
         switch (event.op) {
           case "SetPlaying":

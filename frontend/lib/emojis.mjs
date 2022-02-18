@@ -1,11 +1,11 @@
 export async function emojify(text) {
-  const emojiList = await emojis;
+  await emojisLoaded;
   let last = 0;
   let nodes = [];
   text.replace(/:([^\s:]+):/g, (match, name, index) => {
     if (last <= index)
       nodes.push(document.createTextNode(text.slice(last, index)));
-    let emoji = emojiList.find((e) => e[0] == name);
+    let emoji = emojis[name.toLowerCase()[0]].find((e) => e[0] == name);
     if (!emoji) {
       nodes.push(document.createTextNode(match));
     } else {
@@ -26,11 +26,44 @@ export async function emojify(text) {
   if (last < text.length) nodes.push(document.createTextNode(text.slice(last)));
   return nodes;
 }
-export const emojis = Promise.all([
+const emojis = {};
+
+export const emojisLoaded = Promise.all([
   fetch("/emojis")
     .then((e) => e.json())
-    .then((e) =>
-      e.map((e) => [e.slice(0, -4), ":" + e.slice(0, -4) + ":", e.slice(-4)])
-    ),
-  fetch("/emojis/unicode.json").then((e) => e.json()),
-]).then((e) => e.flat(1));
+    .then((a) => {
+      for (let e of a) {
+        const name = e.slice(0, -4),
+          lower = name.toLowerCase();
+        emojis[lower[0]] = emojis[lower[0]] || [];
+        emojis[lower[0]].push([name, ":" + name + ":", e.slice(-4), lower]);
+      }
+    }),
+  fetch("/emojis/unicode.json")
+    .then((e) => e.json())
+    .then((a) => {
+      for (let e of a) {
+        emojis[e[0][0]] = emojis[e[0][0]] || [];
+        emojis[e[0][0]].push([e[0], e[1], null, e[0]]);
+      }
+    }),
+]);
+
+export async function findEmojis(search) {
+  await emojisLoaded;
+  let groups = [[], []];
+  if (search.length < 1) {
+    for (let letter in emojis)
+      for (let emoji of emojis[letter]) {
+        (emoji[1][0] === ":" ? groups[0] : groups[1]).push(emoji);
+      }
+  } else {
+    search = search.toLowerCase();
+    for (let emoji of emojis[search[0]]) {
+      if (search.length == 1 || emoji[3].startsWith(search)) {
+        (emoji[1][0] === ":" ? groups[0] : groups[1]).push(emoji);
+      }
+    }
+  }
+  return [...groups[0], ...groups[1]];
+}

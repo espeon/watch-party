@@ -56,7 +56,8 @@ const setupChatboxEvents = (socket) => {
       button.classList.add("selected");
     };
     let results = await findEmojis(search);
-    for (let i = 0; i < results.length; i += 100) {
+    let yieldAt = performance.now() + 13;
+    for (let i = 0; i < results.length; i += 10) {
       emojiAutocomplete.append.apply(
         emojiAutocomplete,
         results.slice(i, i + 1000).map(([name, replaceWith, ext], i) => {
@@ -98,7 +99,11 @@ const setupChatboxEvents = (socket) => {
         emojiAutocomplete.children[0].scrollIntoView();
         select(emojiAutocomplete.children[0]);
       }
-      await new Promise((cb) => setTimeout(cb, 0));
+      const now = performance.now();
+      if (now > yieldAt) {
+        yieldAt = now + 13;
+        await new Promise((cb) => setTimeout(cb, 0));
+      }
     }
     autocompleting = false;
   }

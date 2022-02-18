@@ -57,10 +57,10 @@ const setupChatboxEvents = (socket) => {
     };
     let results = await findEmojis(search);
     let yieldAt = performance.now() + 13;
-    for (let i = 0; i < results.length; i += 10) {
+    for (let i = 0; i < results.length; i += 100) {
       emojiAutocomplete.append.apply(
         emojiAutocomplete,
-        results.slice(i, i + 1000).map(([name, replaceWith, ext], i) => {
+        results.slice(i, i + 100).map(([name, replaceWith, ext], i) => {
           const button = Object.assign(document.createElement("button"), {
             className: "emoji-option",
             onmousedown: (e) => e.preventDefault(),

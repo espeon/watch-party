@@ -11,6 +11,7 @@ export default class ReconnectingWebSocket {
     this._lastConnect = 0;
     this._socket = null;
     this._unsent = [];
+    this._connect(true);
   }
   _connect(first) {
     if (this._socket)

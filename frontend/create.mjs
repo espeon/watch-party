@@ -1,4 +1,4 @@
-import { setupCreateSessionForm } from "./lib/create-session.mjs?v=19ef791";
+import { setupCreateSessionForm } from "./lib/create-session.mjs?v=a6a856c";
 
 const main = () => {
   setupCreateSessionForm();

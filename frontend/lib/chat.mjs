@@ -4,6 +4,7 @@ import {
   setPlaying,
 } from "./watch-session.mjs?v=048af96";
 import { emojify, findEmojis } from "./emojis.mjs?v=048af96";
+import { linkify } from "./links.mjs";
 
 function setCaretPosition(elem, caretPos) {
   if (elem.createTextRange) {
@@ -35,77 +36,81 @@ const setupChatboxEvents = (socket) => {
   };
   async function autocomplete(fromListTimeout) {
     if (autocompleting) return;
-    clearInterval(showListTimer);
-    emojiAutocomplete.textContent = "";
-    autocompleting = true;
-    let text = messageInput.value.slice(0, messageInput.selectionStart);
-    const match = text.match(/(:[^\s:]+)?:([^\s:]*)$/);
-    if (!match || match[1]) return (autocompleting = false); // We don't need to autocomplete.
-    const prefix = text.slice(0, match.index);
-    const search = text.slice(match.index + 1);
-    if (search.length < 1 && !fromListTimeout) {
+    try {
+      clearInterval(showListTimer);
+      emojiAutocomplete.textContent = "";
+      autocompleting = true;
+      let text = messageInput.value.slice(0, messageInput.selectionStart);
+      const match = text.match(/(:[^\s:]+)?:([^\s:]*)$/);
+      if (!match || match[1]) return (autocompleting = false); // We don't need to autocomplete.
+      const prefix = text.slice(0, match.index);
+      const search = text.slice(match.index + 1);
+      if (search.length < 1 && !fromListTimeout) {
+        autocompleting = false;
+        showListTimer = setTimeout(() => autocomplete(true), 500);
+        return;
+      }
+      const suffix = messageInput.value.slice(messageInput.selectionStart);
+      let selected;
+      const select = (button) => {
+        if (selected) selected.classList.remove("selected");
+        selected = button;
+        button.classList.add("selected");
+      };
+      let results = await findEmojis(search);
+      let yieldAt = performance.now() + 13;
+      for (let i = 0; i < results.length; i += 100) {
+        emojiAutocomplete.append.apply(
+          emojiAutocomplete,
+          results.slice(i, i + 100).map(([name, replaceWith, ext], i) => {
+            const button = Object.assign(document.createElement("button"), {
+              className: "emoji-option",
+              onmousedown: (e) => e.preventDefault(),
+              onclick: () => {
+                messageInput.value = prefix + replaceWith + " " + suffix;
+                setCaretPosition(
+                  messageInput,
+                  (prefix + " " + replaceWith).length
+                );
+              },
+              onmouseover: () => select(button),
+              onfocus: () => select(button),
+              type: "button",
+              title: name,
+            });
+            button.append(
+              replaceWith[0] !== ":"
+                ? Object.assign(document.createElement("span"), {
+                    textContent: replaceWith,
+                    className: "emoji",
+                  })
+                : Object.assign(new Image(), {
+                    loading: "lazy",
+                    src: `/emojis/${name}${ext}`,
+                    className: "emoji",
+                  }),
+              Object.assign(document.createElement("span"), {
+                textContent: name,
+                className: "emoji-name",
+              })
+            );
+            return button;
+          })
+        );
+        if (i == 0 && emojiAutocomplete.children[0]) {
+          emojiAutocomplete.children[0].scrollIntoView();
+          select(emojiAutocomplete.children[0]);
+        }
+        const now = performance.now();
+        if (now > yieldAt) {
+          yieldAt = now + 13;
+          await new Promise((cb) => setTimeout(cb, 0));
+        }
+      }
       autocompleting = false;
-      showListTimer = setTimeout(() => autocomplete(true), 500);
-      return;
+    } catch (e) {
+      autocompleting = false;
     }
-    const suffix = messageInput.value.slice(messageInput.selectionStart);
-    let selected;
-    const select = (button) => {
-      if (selected) selected.classList.remove("selected");
-      selected = button;
-      button.classList.add("selected");
-    };
-    let results = await findEmojis(search);
-    let yieldAt = performance.now() + 13;
-    for (let i = 0; i < results.length; i += 100) {
-      emojiAutocomplete.append.apply(
-        emojiAutocomplete,
-        results.slice(i, i + 100).map(([name, replaceWith, ext], i) => {
-          const button = Object.assign(document.createElement("button"), {
-            className: "emoji-option",
-            onmousedown: (e) => e.preventDefault(),
-            onclick: () => {
-              messageInput.value = prefix + replaceWith + " " + suffix;
-              setCaretPosition(
-                messageInput,
-                (prefix + " " + replaceWith).length
-              );
-            },
-            onmouseover: () => select(button),
-            onfocus: () => select(button),
-            type: "button",
-            title: name,
-          });
-          button.append(
-            replaceWith[0] !== ":"
-              ? Object.assign(document.createElement("span"), {
-                  textContent: replaceWith,
-                  className: "emoji",
-                })
-              : Object.assign(new Image(), {
-                  loading: "lazy",
-                  src: `/emojis/${name}${ext}`,
-                  className: "emoji",
-                }),
-            Object.assign(document.createElement("span"), {
-              textContent: name,
-              className: "emoji-name",
-            })
-          );
-          return button;
-        })
-      );
-      if (i == 0 && emojiAutocomplete.children[0]) {
-        emojiAutocomplete.children[0].scrollIntoView();
-        select(emojiAutocomplete.children[0]);
-      }
-      const now = performance.now();
-      if (now > yieldAt) {
-        yieldAt = now + 13;
-        await new Promise((cb) => setTimeout(cb, 0));
-      }
-    }
-    autocompleting = false;
   }
   messageInput.addEventListener("input", () => autocomplete());
   messageInput.addEventListener("selectionchange", () => autocomplete());
@@ -227,13 +232,6 @@ const setupChatboxEvents = (socket) => {
 export const setupChat = async (socket) => {
   document.querySelector("#chatbox-container").style["display"] = "flex";
   setupChatboxEvents(socket);
-
-  window.addEventListener("keydown", (event) => {
-    try {
-      const isSelectionEmpty = window.getSelection().toString().length === 0;
-      if (event.code.match(/Key\w/) && isSelectionEmpty) messageInput.focus();
-    } catch (_err) {}
-  });
 };
 
 const addToChat = (node) => {
@@ -354,7 +352,7 @@ export const logEventToChat = async (event) => {
     case "ChatMessage": {
       const messageContent = document.createElement("span");
       messageContent.classList.add("message-content");
-      messageContent.append(...(await emojify(event.data)));
+      messageContent.append(...(await linkify(event.data, emojify)));
       printChatMessage(
         "chat-message",
         event.user,

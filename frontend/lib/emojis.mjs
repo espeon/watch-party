@@ -5,7 +5,10 @@ export async function emojify(text) {
   text.replace(/:([^\s:]+):/g, (match, name, index) => {
     if (last <= index)
       nodes.push(document.createTextNode(text.slice(last, index)));
-    let emoji = emojis[name.toLowerCase()[0]].find((e) => e[0] == name);
+    let emoji;
+    try {
+      emoji = emojis[name.toLowerCase()[0]].find((e) => e[0] == name);
+    } catch (e) {}
     if (!emoji) {
       nodes.push(document.createTextNode(match));
     } else {

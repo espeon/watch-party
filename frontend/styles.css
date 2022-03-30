@@ -226,7 +226,8 @@ button.small-button {
 }
 
 .chat-message.set-time,
-.chat-message.set-playing {
+.chat-message.set-playing,
+.chat-message.join-session {
   font-style: italic;
   text-align: right;
   font-size: 0.85em;
@@ -237,7 +238,8 @@ button.small-button {
 }
 
 .chat-message.set-time > strong,
-.chat-message.set-playing > strong {
+.chat-message.set-playing > strong,
+.chat-message.join-session > strong {
   color: unset !important;
 }
 

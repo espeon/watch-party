@@ -1,3 +1,5 @@
+import { joinNewSession } from "./watch-session.mjs?v=048af96";
+
 export async function linkify(
   text,
   next = async (t) => [document.createTextNode(t)]
@@ -29,9 +31,11 @@ export async function linkify(
           ) {
             nodes.push(
               Object.assign(document.createElement("a"), {
-                href: url.href,
                 textContent: "Join Session",
                 className: "chip join-chip",
+                onclick: () => {
+                  joinNewSession(url.hash.substring(1));
+                },
               })
             );
           } else if (

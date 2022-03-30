@@ -4,7 +4,8 @@ import {
   setPlaying,
 } from "./watch-session.mjs?v=048af96";
 import { emojify, findEmojis } from "./emojis.mjs?v=048af96";
-import { linkify } from "./links.mjs";
+import { linkify } from "./links.mjs?v=048af96";
+import { joinNewSession } from "./watch-session.mjs?v=048af96";
 
 function setCaretPosition(elem, caretPos) {
   if (elem.createTextRange) {
@@ -189,6 +190,10 @@ const setupChatboxEvents = (socket) => {
             );
             handled = true;
             break;
+          case "/join":
+            joinNewSession(args);
+            handled = true;
+            break;
           case "/help":
             const helpMessageContent = document.createElement("span");
             helpMessageContent.innerHTML =
@@ -196,7 +201,8 @@ const setupChatboxEvents = (socket) => {
               "&emsp;<code>/help</code> - display this help message<br>" +
               "&emsp;<code>/ping [message]</code> - ping all viewers<br>" +
               "&emsp;<code>/sync</code> - resyncs you with other viewers<br>" +
-              "&emsp;<code>/shrug</code> - appends ¯\\_(ツ)_/¯ to your message";
+              "&emsp;<code>/shrug</code> - appends ¯\\_(ツ)_/¯ to your message<br>" +
+              "&emsp;<code>/join [session id]</code> - joins another session";
 
             printChatMessage(
               "command-message",
@@ -294,7 +300,7 @@ const matpad = (n) => {
  * @param {string?} user
  * @param {Node?} content
  */
-const printChatMessage = (eventType, user, colour, content) => {
+export const printChatMessage = (eventType, user, colour, content) => {
   const chatMessage = document.createElement("div");
   chatMessage.classList.add("chat-message");
   chatMessage.classList.add(eventType);

@@ -11,6 +11,7 @@ export default class ReconnectingWebSocket {
     this._lastConnect = 0;
     this._socket = null;
     this._unsent = [];
+    this._closing = false;
     this._connect(true);
   }
   _connect(first) {
@@ -40,6 +41,7 @@ export default class ReconnectingWebSocket {
     });
   }
   _reconnect() {
+    if (this._closing) return;
     if (this._reconnecting) return;
     this._eventTarget.dispatchEvent(new Event("reconnecting"));
     this._reconnecting = true;
@@ -55,6 +57,10 @@ export default class ReconnectingWebSocket {
     } else {
       this._unsent.push(message);
     }
+  }
+  close() {
+    this._closing = true;
+    this._socket.close();
   }
   addEventListener(...a) {
     return this._eventTarget.addEventListener(...a);

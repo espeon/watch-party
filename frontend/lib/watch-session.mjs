@@ -3,6 +3,7 @@ import {
   setupChat,
   logEventToChat,
   updateViewerList,
+  printChatMessage,
 } from "./chat.mjs?v=048af96";
 import ReconnectingWebSocket from "./reconnecting-web-socket.mjs";
 
@@ -166,11 +167,41 @@ const setupOutgoingEvents = (video, socket) => {
   });
 };
 
+let socket = null;
+let video = null;
+
+export const joinNewSession = async (sessionId) => {
+  const messageContent = document.createElement("span");
+  messageContent.appendChild(document.createTextNode("joining new session "));
+  messageContent.appendChild(document.createTextNode(sessionId));
+
+  printChatMessage("join-session", "watch-party", "#fffff", messageContent);
+
+  // clean up previous session
+  // TODO: this most likely isnt properly working yet when using the /join command to join a new session
+  if (socket != null) {
+    socket.close();
+    socket = null;
+  }
+  if (video != null) {
+    video.remove();
+    video = null;
+  }
+
+  joinSession(window.nickname, sessionId, sColour);
+};
+
 /**
  * @param {string} nickname
  * @param {string} sessionId
+ * @param {string} colour
  */
 export const joinSession = async (nickname, sessionId, colour) => {
+  // TODO: we are getting to a point with our features where some kind of
+  // state store for the various info that is needed in a lot of places would probably make sense
+  window.nickname = nickname;
+  window.colour = colour;
+
   // try { // we are handling errors in the join form.
   const genericConnectionError = new Error(
     "There was an issue getting the session information."
@@ -202,9 +233,9 @@ export const joinSession = async (nickname, sessionId, colour) => {
     throw genericConnectionError;
   }
 
-  const socket = createWebSocket(sessionId, nickname, colour);
+  socket = createWebSocket(sessionId, nickname, colour);
   socket.addEventListener("open", async () => {
-    const video = await setupVideo(
+    video = await setupVideo(
       video_url,
       subtitle_tracks,
       current_time_ms,

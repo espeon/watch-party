@@ -426,12 +426,12 @@ const beep = () => {
 
   const gain = context.createGain();
   gain.connect(context.destination);
-  gain.gain.value = 0.1;
+  gain.gain.value = 0.15;
 
   const oscillator = context.createOscillator();
   oscillator.connect(gain);
-  oscillator.frequency.value = 520;
-  oscillator.type = "square";
+  oscillator.frequency.value = 400;
+  oscillator.type = "sine";
 
   oscillator.start(context.currentTime);
   oscillator.stop(context.currentTime + 0.22);

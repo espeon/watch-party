@@ -416,6 +416,23 @@ export const logEventToChat = async (event) => {
 
       printChatMessage("ping", event.user, event.colour, messageContent);
       beep();
+      if ("Notification" in window) {
+        const title = "watch party :)";
+        const options = {
+          body: event.data
+            ? `${event.user} pinged saying: ${event.data}`
+            : `${event.user} pinged`,
+        };
+        if (Notification.permission === "granted") {
+          new Notification(title, options);
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then(function (permission) {
+            if (permission === "granted") {
+              new Notification(title, options);
+            }
+          });
+        }
+      }
       break;
     }
   }

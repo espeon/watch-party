@@ -1,4 +1,5 @@
 import { joinSession } from "./watch-session.mjs?v=048af96";
+import { state } from "./state.mjs";
 
 /**
  * @param {HTMLInputElement} field
@@ -80,11 +81,10 @@ export const setupJoinSessionForm = () => {
     saveNickname(nickname);
     saveColour(colour);
     try {
-      await joinSession(
-        nickname.value,
-        sessionId.value,
-        colour.value.replace(/^#/, "")
-      );
+      state().nickname = nickname.value;
+      state().sessionId = sessionId.value;
+      state().colour = colour.value.replace(/^#/, "");
+      await joinSession();
     } catch (e) {
       alert(e.message);
       button.disabled = false;

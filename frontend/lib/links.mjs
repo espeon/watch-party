@@ -1,4 +1,5 @@
-import { joinNewSession } from "./watch-session.mjs?v=048af96";
+import { joinSession } from "./watch-session.mjs?v=048af96";
+import { state } from "./state.mjs";
 
 export async function linkify(
   text,
@@ -34,7 +35,8 @@ export async function linkify(
                 textContent: "Join Session",
                 className: "chip join-chip",
                 onclick: () => {
-                  joinNewSession(url.hash.substring(1));
+                  state().sessionId = url.hash.substring(1);
+                  joinSession();
                 },
               })
             );

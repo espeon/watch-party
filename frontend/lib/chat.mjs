@@ -5,7 +5,8 @@ import {
 } from "./watch-session.mjs?v=048af96";
 import { emojify, findEmojis } from "./emojis.mjs?v=048af96";
 import { linkify } from "./links.mjs?v=048af96";
-import { joinNewSession } from "./watch-session.mjs?v=048af96";
+import { joinSession } from "./watch-session.mjs?v=048af96";
+import { state } from "./state.mjs";
 
 function setCaretPosition(elem, caretPos) {
   if (elem.createTextRange) {
@@ -191,7 +192,8 @@ const setupChatboxEvents = (socket) => {
             handled = true;
             break;
           case "/join":
-            joinNewSession(args);
+            state().sessionId = args;
+            joinSession();
             handled = true;
             break;
           case "/help":

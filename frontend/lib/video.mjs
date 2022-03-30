@@ -51,7 +51,12 @@ const saveCaptionsTrack = (track) => {
  * @param {{name: string, url: string}[]} subtitles
  */
 const createVideoElement = (videoUrl, subtitles) => {
+  const oldVideo = document.getElementById("video");
+  if (oldVideo) {
+    oldVideo.remove();
+  }
   const video = document.createElement("video");
+  video.id = "video";
   video.controls = true;
   video.autoplay = false;
   video.volume = loadVolume();

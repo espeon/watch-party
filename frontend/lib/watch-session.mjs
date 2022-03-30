@@ -6,17 +6,18 @@ import {
   printChatMessage,
 } from "./chat.mjs?v=048af96";
 import ReconnectingWebSocket from "./reconnecting-web-socket.mjs";
+import { state } from "./state.mjs";
 
 /**
  * @param {string} sessionId
  * @param {string} nickname
  * @returns {ReconnectingWebSocket}
  */
-const createWebSocket = (sessionId, nickname, colour) => {
+const createWebSocket = () => {
   const wsUrl = new URL(
-    `/sess/${sessionId}/subscribe` +
-      `?nickname=${encodeURIComponent(nickname)}` +
-      `&colour=${encodeURIComponent(colour)}`,
+    `/sess/${state().sessionId}/subscribe` +
+      `?nickname=${encodeURIComponent(state().nickname)}` +
+      `&colour=${encodeURIComponent(state().colour)}`,
     window.location.href
   );
   wsUrl.protocol = "ws" + window.location.protocol.slice(4);
@@ -167,49 +168,29 @@ const setupOutgoingEvents = (video, socket) => {
   });
 };
 
-let socket = null;
-let video = null;
+export const joinSession = async () => {
+  if (state().activeSession) {
+    if (state().activeSession === state().sessionId) {
+      // we are already in this session, dont rejoin
+      return;
+    }
+    // we are joining a new session from an existing session
+    const messageContent = document.createElement("span");
+    messageContent.appendChild(document.createTextNode("joining new session "));
+    messageContent.appendChild(document.createTextNode(state().sessionId));
 
-export const joinNewSession = async (sessionId) => {
-  const messageContent = document.createElement("span");
-  messageContent.appendChild(document.createTextNode("joining new session "));
-  messageContent.appendChild(document.createTextNode(sessionId));
-
-  printChatMessage("join-session", "watch-party", "#fffff", messageContent);
-
-  // clean up previous session
-  // TODO: this most likely isnt properly working yet when using the /join command to join a new session
-  if (socket != null) {
-    socket.close();
-    socket = null;
+    printChatMessage("join-session", "watch-party", "#fffff", messageContent);
   }
-  if (video != null) {
-    video.remove();
-    video = null;
-  }
-
-  joinSession(window.nickname, sessionId, sColour);
-};
-
-/**
- * @param {string} nickname
- * @param {string} sessionId
- * @param {string} colour
- */
-export const joinSession = async (nickname, sessionId, colour) => {
-  // TODO: we are getting to a point with our features where some kind of
-  // state store for the various info that is needed in a lot of places would probably make sense
-  window.nickname = nickname;
-  window.colour = colour;
+  state().activeSession = state().sessionId;
 
   // try { // we are handling errors in the join form.
   const genericConnectionError = new Error(
     "There was an issue getting the session information."
   );
-  window.location.hash = sessionId;
+  window.location.hash = state().sessionId;
   let response, video_url, subtitle_tracks, current_time_ms, is_playing;
   try {
-    response = await fetch(`/sess/${sessionId}`);
+    response = await fetch(`/sess/${state().sessionId}`);
   } catch (e) {
     console.error(e);
     throw genericConnectionError;
@@ -233,9 +214,14 @@ export const joinSession = async (nickname, sessionId, colour) => {
     throw genericConnectionError;
   }
 
-  socket = createWebSocket(sessionId, nickname, colour);
+  if (state().socket) {
+    state().socket.close();
+    state().socket = null;
+  }
+  const socket = createWebSocket();
+  state().socket = socket;
   socket.addEventListener("open", async () => {
-    video = await setupVideo(
+    const video = await setupVideo(
       video_url,
       subtitle_tracks,
       current_time_ms,

@@ -1,4 +1,4 @@
-import { joinSession } from "./watch-session.mjs?v=048af96";
+import { joinSession } from "./watch-session.mjs?v=ee93fb";
 import { state } from "./state.mjs";
 
 export async function linkify(

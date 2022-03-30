@@ -1,10 +1,10 @@
-import { setupVideo } from "./video.mjs?v=048af96";
+import { setupVideo } from "./video.mjs?v=ee93fb";
 import {
   setupChat,
   logEventToChat,
   updateViewerList,
   printChatMessage,
-} from "./chat.mjs?v=048af96";
+} from "./chat.mjs?v=ee93fb";
 import ReconnectingWebSocket from "./reconnecting-web-socket.mjs";
 import { state } from "./state.mjs";
 

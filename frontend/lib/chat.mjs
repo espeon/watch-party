@@ -6,6 +6,7 @@ import {
 import { emojify, findEmojis } from "./emojis.mjs?v=048af96";
 import { linkify } from "./links.mjs?v=048af96";
 import { joinSession } from "./watch-session.mjs?v=048af96";
+import { pling } from "./pling.mjs?v=048af96"
 import { state } from "./state.mjs";
 
 function setCaretPosition(elem, caretPos) {
@@ -417,7 +418,7 @@ export const logEventToChat = async (event) => {
       }
 
       printChatMessage("ping", event.user, event.colour, messageContent);
-      beep();
+      pling();
       if ("Notification" in window) {
         const title = "watch party :)";
         const options = {
@@ -438,22 +439,6 @@ export const logEventToChat = async (event) => {
       break;
     }
   }
-};
-
-const beep = () => {
-  const context = new AudioContext();
-
-  const gain = context.createGain();
-  gain.connect(context.destination);
-  gain.gain.value = 0.15;
-
-  const oscillator = context.createOscillator();
-  oscillator.connect(gain);
-  oscillator.frequency.value = 400;
-  oscillator.type = "sine";
-
-  oscillator.start(context.currentTime);
-  oscillator.stop(context.currentTime + 0.22);
 };
 
 export const updateViewerList = (viewers) => {

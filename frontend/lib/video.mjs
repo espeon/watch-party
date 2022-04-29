@@ -79,7 +79,7 @@ const createVideoElement = (videoUrl, subtitles) => {
     track.src = url;
     track.kind = "captions";
 
-    if (id == storedTrack) {
+    if (id == storedTrack || storedTrack == -1) {
       track.default = true;
     }
 

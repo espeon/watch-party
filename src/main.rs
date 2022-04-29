@@ -62,7 +62,7 @@ async fn main() {
             warb::reply::json(&json!({ "id": session_uuid.to_string(), "session": session_view }))
         });
 
-    let get_emoji_route = warb::path!("emojis").and_then(get_emoji_list);
+    let get_emoji_route = warb::path!("emojos").and_then(get_emoji_list);
 
     enum RequestedSession {
         Session(Uuid, WatchSession),

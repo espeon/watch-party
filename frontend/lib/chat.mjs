@@ -6,7 +6,7 @@ import {
 import { emojify, findEmojis } from "./emojis.mjs?v=ee93fb";
 import { linkify } from "./links.mjs?v=ee93fb";
 import { joinSession } from "./watch-session.mjs?v=ee93fb";
-import { pling } from "./pling.mjs?v=ee93fb"
+import { pling } from "./pling.mjs?v=ee93fb";
 import { state } from "./state.mjs";
 
 function setCaretPosition(elem, caretPos) {
@@ -44,7 +44,7 @@ const setupChatboxEvents = (socket) => {
       emojiAutocomplete.textContent = "";
       autocompleting = true;
       let text = messageInput.value.slice(0, messageInput.selectionStart);
-      const match = text.match(/(:[^\s:]+)?:([^\s:]*)$/);
+      const match = text.match(/(:[^\s:]+)?:([^\s:]{2,})$/);
       if (!match || match[1]) return (autocompleting = false); // We don't need to autocomplete.
       const prefix = text.slice(0, match.index);
       const search = text.slice(match.index + 1);
@@ -133,7 +133,7 @@ const setupChatboxEvents = (socket) => {
       selected.classList.add("selected");
       selected.scrollIntoView({ scrollMode: "if-needed", block: "nearest" });
     }
-    if (event.key == "Tab") {
+    if (event.key == "Tab" || event.key == "Enter") {
       let selected = document.querySelector(".emoji-option.selected");
       if (!selected) return;
       event.preventDefault();

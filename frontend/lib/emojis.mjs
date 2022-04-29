@@ -32,7 +32,15 @@ export async function emojify(text) {
 const emojis = {};
 
 export const emojisLoaded = Promise.all([
-  fetch("/emojis")
+  fetch("/emojis/unicode.json")
+    .then((e) => e.json())
+    .then((a) => {
+      for (let e of a) {
+        emojis[e[0][0]] = emojis[e[0][0]] || [];
+        emojis[e[0][0]].push([e[0], e[1], null, e[0]]);
+      }
+    }),
+  fetch("/emojos")
     .then((e) => e.json())
     .then((a) => {
       for (let e of a) {
@@ -40,14 +48,6 @@ export const emojisLoaded = Promise.all([
           lower = name.toLowerCase();
         emojis[lower[0]] = emojis[lower[0]] || [];
         emojis[lower[0]].push([name, ":" + name + ":", e.slice(-4), lower]);
-      }
-    }),
-  fetch("/emojis/unicode.json")
-    .then((e) => e.json())
-    .then((a) => {
-      for (let e of a) {
-        emojis[e[0][0]] = emojis[e[0][0]] || [];
-        emojis[e[0][0]].push([e[0], e[1], null, e[0]]);
       }
     }),
 ]);
@@ -68,5 +68,5 @@ export async function findEmojis(search) {
       }
     }
   }
-  return [...groups[0], ...groups[1]];
+  return [...groups[1], ...groups[0]];
 }

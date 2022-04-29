@@ -228,10 +228,18 @@ export const joinSession = async () => {
       is_playing
     );
 
+    // TODO: Allow the user to set this somewhere
+    let defaultAllowControls = false;
+    try {
+      defaultAllowControls = localStorage.getItem(
+        "watch-party-default-allow-controls"
+      );
+    } catch (_err) {}
+
     // By default, we should disable video controls if the video is already playing.
     // This solves an issue where Safari users join and seek to 00:00:00 because of
     // outgoing events.
-    if (current_time_ms != 0) {
+    if (current_time_ms != 0 || !defaultAllowControls) {
       video.controls = false;
     }
 

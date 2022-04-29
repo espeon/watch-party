@@ -30,7 +30,9 @@
           required
         />
 
-        <label for="join-session-colour">Personal Colour:</label>
+        <label id="join-session-colour-label" for="join-session-colour">
+          Personal Colour:
+        </label>
         <input type="color" id="join-session-colour" value="#ffffff" required />
 
         <label for="join-session-id">Session ID:</label>
@@ -65,5 +67,18 @@
     </div>
 
     <script type="module" src="/main.mjs?v=bfdcf2"></script>
+    <script>
+      const updateColourLabel = () => {
+        const colour = document.querySelector("#join-session-colour").value;
+        document.querySelector(
+          "#join-session-colour-label"
+        ).textContent = `Personal Colour: ${colour}`;
+      };
+
+      document
+        .querySelector("#join-session-colour")
+        .addEventListener("input", updateColourLabel);
+      updateColourLabel();
+    </script>
   </body>
 </html>

@@ -54,11 +54,13 @@ const displayPostCreateMessage = () => {
   if (params.get("created") == "true") {
     document.querySelector("#post-create-message").style["display"] = "block";
     window.history.replaceState({}, document.title, `/${window.location.hash}`);
+    return true;
   }
+  return false;
 };
 
 export const setupJoinSessionForm = () => {
-  displayPostCreateMessage();
+  const created = displayPostCreateMessage();
 
   const form = document.querySelector("#join-session-form");
   const nickname = form.querySelector("#join-session-nickname");
@@ -84,7 +86,7 @@ export const setupJoinSessionForm = () => {
       state().nickname = nickname.value;
       state().sessionId = sessionId.value;
       state().colour = colour.value.replace(/^#/, "");
-      await joinSession();
+      await joinSession(created);
     } catch (e) {
       alert(e.message);
       button.disabled = false;

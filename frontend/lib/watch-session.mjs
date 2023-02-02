@@ -7,7 +7,7 @@ import {
 } from "./chat.mjs?v=bfdcf2";
 import ReconnectingWebSocket from "./reconnecting-web-socket.mjs";
 import { state } from "./state.mjs";
-
+let player;
 /**
  * @param {string} sessionId
  * @param {string} nickname
@@ -42,26 +42,18 @@ export const setDebounce = () => {
   }, 500);
 };
 
-export const setVideoTime = (time, video = null) => {
-  if (video == null) {
-    video = document.querySelector("video");
-  }
-
+export const setVideoTime = (time) => {
   const timeSecs = time / 1000.0;
-  if (Math.abs(video.currentTime - timeSecs) > 0.5) {
-    video.currentTime = timeSecs;
+  if (Math.abs(player.currentTime - timeSecs) > 0.5) {
+    player.currentTime = timeSecs;
   }
 };
 
-export const setPlaying = async (playing, video = null) => {
-  if (video == null) {
-    video = document.querySelector("video");
-  }
-
+export const setPlaying = async (playing) => {
   if (playing) {
-    await video.play();
+    await player.play();
   } else {
-    video.pause();
+    player.pause();
   }
 };
 
@@ -69,7 +61,7 @@ export const setPlaying = async (playing, video = null) => {
  * @param {HTMLVideoElement} video
  * @param {ReconnectingWebSocket} socket
  */
-const setupIncomingEvents = (video, socket) => {
+const setupIncomingEvents = (player, socket) => {
   socket.addEventListener("message", async (messageEvent) => {
     try {
       const event = JSON.parse(messageEvent.data);
@@ -79,16 +71,16 @@ const setupIncomingEvents = (video, socket) => {
             setDebounce();
 
             if (event.data.playing) {
-              await video.play();
+              await player.play();
             } else {
-              video.pause();
+              player.pause();
             }
 
-            setVideoTime(event.data.time, video);
+            setVideoTime(event.data.time);
             break;
           case "SetTime":
             setDebounce();
-            setVideoTime(event.data, video);
+            setVideoTime(event.data);
             break;
           case "UpdateViewerList":
             updateViewerList(event.data);
@@ -102,19 +94,19 @@ const setupIncomingEvents = (video, socket) => {
 };
 
 /**
- * @param {HTMLVideoElement} video
+ * @param {Plyr} player
  * @param {ReconnectingWebSocket} socket
  */
-const setupOutgoingEvents = (video, socket) => {
-  const currentVideoTime = () => (video.currentTime * 1000) | 0;
+const setupOutgoingEvents = (player, socket) => {
+  const currentVideoTime = () => (player.currentTime * 1000) | 0;
 
-  video.addEventListener("pause", async (event) => {
-    if (outgoingDebounce || !video.controls) {
+  player.on("pause", async () => {
+    if (outgoingDebounce || player.elements.inputs.seek.disabled) {
       return;
     }
 
     // don't send a pause event for the video ending
-    if (video.currentTime == video.duration) {
+    if (player.currentTime == player.duration) {
       return;
     }
 
@@ -129,8 +121,8 @@ const setupOutgoingEvents = (video, socket) => {
     );
   });
 
-  video.addEventListener("play", (event) => {
-    if (outgoingDebounce || !video.controls) {
+  player.on("play", () => {
+    if (outgoingDebounce || player.elements.inputs.seek.disabled) {
       return;
     }
 
@@ -146,14 +138,14 @@ const setupOutgoingEvents = (video, socket) => {
   });
 
   let firstSeekComplete = false;
-  video.addEventListener("seeked", async (event) => {
+  player.on("seeked", async (event) => {
     if (!firstSeekComplete) {
       // The first seeked event is performed by the browser when the video is loading
       firstSeekComplete = true;
       return;
     }
 
-    if (outgoingDebounce || !video.controls) {
+    if (outgoingDebounce || player.elements.inputs.seek.disabled) {
       return;
     }
 
@@ -168,7 +160,7 @@ const setupOutgoingEvents = (video, socket) => {
   });
 };
 
-export const joinSession = async () => {
+export const joinSession = async (created) => {
   if (state().activeSession) {
     if (state().activeSession === state().sessionId) {
       // we are already in this session, dont rejoin
@@ -221,30 +213,20 @@ export const joinSession = async () => {
   const socket = createWebSocket();
   state().socket = socket;
   socket.addEventListener("open", async () => {
-    const video = await setupVideo(
+    player = await setupVideo(
       video_url,
       subtitle_tracks,
       current_time_ms,
-      is_playing
+      is_playing,
+      created
     );
 
-    // TODO: Allow the user to set this somewhere
-    let defaultAllowControls = false;
-    try {
-      defaultAllowControls = localStorage.getItem(
-        "watch-party-default-allow-controls"
-      );
-    } catch (_err) {}
+    player.on("canplay", () => {
+      sync();
+    });
 
-    // By default, we should disable video controls if the video is already playing.
-    // This solves an issue where Safari users join and seek to 00:00:00 because of
-    // outgoing events.
-    if (current_time_ms != 0 || !defaultAllowControls) {
-      video.controls = false;
-    }
-
-    setupOutgoingEvents(video, socket);
-    setupIncomingEvents(video, socket);
+    setupOutgoingEvents(player, socket);
+    setupIncomingEvents(player, socket);
     setupChat(socket);
   });
   socket.addEventListener("reconnecting", (e) => {
@@ -273,4 +255,16 @@ export const createSession = async (videoUrl, subtitleTracks) => {
   }).then((r) => r.json());
 
   window.location = `/?created=true#${id}`;
+};
+
+export const sync = async () => {
+  setDebounce();
+  await setPlaying(false);
+  const { current_time_ms, is_playing } = await fetch(
+    `/sess/${state().sessionId}`
+  ).then((r) => r.json());
+
+  setDebounce();
+  setVideoTime(current_time_ms);
+  if (is_playing) await setPlaying(is_playing);
 };

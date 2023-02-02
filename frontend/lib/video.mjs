@@ -1,137 +1,84 @@
-const loadVolume = () => {
-  try {
-    const savedVolume = localStorage.getItem("watch-party-volume");
-    if (savedVolume != null && savedVolume != "") {
-      return +savedVolume;
-    }
-  } catch (_err) {
-    // Sometimes localStorage is blocked from use
-  }
-  // default
-  return 0.5;
-};
-
-/**
- * @param {number} volume
- */
-const saveVolume = (volume) => {
-  try {
-    localStorage.setItem("watch-party-volume", volume);
-  } catch (_err) {
-    // see loadVolume
-  }
-};
-
-const loadCaptionTrack = () => {
-  try {
-    const savedTrack = localStorage.getItem("watch-party-captions");
-    if (savedTrack != null && savedTrack != "") {
-      return +savedTrack;
-    }
-  } catch (_err) {
-    // Sometimes localStorage is blocked from use
-  }
-  // default
-  return -1;
-};
-
-/**
- * @param {number} track
- */
-const saveCaptionsTrack = (track) => {
-  try {
-    localStorage.setItem("watch-party-captions", track);
-  } catch (_err) {
-    // see loadCaptionsTrack
-  }
-};
+import Plyr from "./plyr-3.7.3.min.esm.js";
 
 /**
  * @param {string} videoUrl
  * @param {{name: string, url: string}[]} subtitles
  */
-const createVideoElement = (videoUrl, subtitles) => {
-  const oldVideo = document.getElementById("video");
+const createVideoElement = (videoUrl, subtitles, created) => {
+  const oldVideo = document.getElementById(".plyr");
   if (oldVideo) {
     oldVideo.remove();
   }
   const video = document.createElement("video");
   video.id = "video";
-  video.controls = true;
-  video.autoplay = false;
-  video.volume = loadVolume();
   video.crossOrigin = "anonymous";
-
-  video.addEventListener("volumechange", async () => {
-    saveVolume(video.volume);
-  });
 
   const source = document.createElement("source");
   source.src = videoUrl;
 
   video.appendChild(source);
 
-  const storedTrack = loadCaptionTrack();
-  let id = 0;
   for (const { name, url } of subtitles) {
     const track = document.createElement("track");
     track.label = name;
+    track.srclang = "xx-" + name.toLowerCase();
     track.src = url;
     track.kind = "captions";
-
-    if (id == storedTrack || storedTrack == -1) {
-      track.default = true;
-    }
-
     video.appendChild(track);
-    id++;
   }
 
-  video.textTracks.addEventListener("change", async () => {
-    let id = 0;
-    for (const track of video.textTracks) {
-      if (track.mode != "disabled") {
-        saveCaptionsTrack(id);
-        return;
-      }
-      id++;
-    }
-    saveCaptionsTrack(-1);
-  });
+  const videoContainer = document.querySelector("#video-container");
+  videoContainer.style.display = "block";
+  videoContainer.appendChild(video);
 
-  // watch for attribute changes on the video object to detect hiding/showing of controls
-  // as far as i can tell this is the least hacky solutions to get control visibility change events
-  const observer = new MutationObserver(async (mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.attributeName == "controls") {
-        if (video.controls) {
-          // enable media button support
-          navigator.mediaSession.setActionHandler("play", null);
-          navigator.mediaSession.setActionHandler("pause", null);
-          navigator.mediaSession.setActionHandler("stop", null);
-          navigator.mediaSession.setActionHandler("seekbackward", null);
-          navigator.mediaSession.setActionHandler("seekforward", null);
-          navigator.mediaSession.setActionHandler("seekto", null);
-          navigator.mediaSession.setActionHandler("previoustrack", null);
-          navigator.mediaSession.setActionHandler("nexttrack", null);
-        } else {
-          // disable media button support by ignoring the events
-          navigator.mediaSession.setActionHandler("play", () => {});
-          navigator.mediaSession.setActionHandler("pause", () => {});
-          navigator.mediaSession.setActionHandler("stop", () => {});
-          navigator.mediaSession.setActionHandler("seekbackward", () => {});
-          navigator.mediaSession.setActionHandler("seekforward", () => {});
-          navigator.mediaSession.setActionHandler("seekto", () => {});
-          navigator.mediaSession.setActionHandler("previoustrack", () => {});
-          navigator.mediaSession.setActionHandler("nexttrack", () => {});
-        }
-        return;
-      }
-    }
+  const player = new Plyr(video, {
+    clickToPlay: false,
+    settings: ["captions", "quality"],
+    autopause: false,
   });
-  observer.observe(video, { attributes: true });
+  player.elements.controls.insertAdjacentHTML(
+    "afterbegin",
+    `<button type="button" aria-pressed="false" class="plyr__controls__item plyr__control lock-controls"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM9 8V6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9z"></path></svg><span class="label--pressed plyr__sr-only">Unlock controls</span><span class="label--not-pressed plyr__sr-only">Lock controls</span></button>`
+  );
+  const lockButton = player.elements.controls.children[0];
+  let controlsEnabled = created;
+  const setControlsEnabled = (enabled) => {
+    controlsEnabled = enabled;
+    lockButton.setAttribute("aria-pressed", enabled);
+    lockButton.classList.toggle("plyr__control--pressed", enabled);
+    player.elements.buttons.play[0].disabled =
+      player.elements.buttons.play[1].disabled =
+      player.elements.inputs.seek.disabled =
+        !enabled;
+    if (!enabled) {
+      // enable media button support
+      navigator.mediaSession.setActionHandler("play", null);
+      navigator.mediaSession.setActionHandler("pause", null);
+      navigator.mediaSession.setActionHandler("stop", null);
+      navigator.mediaSession.setActionHandler("seekbackward", null);
+      navigator.mediaSession.setActionHandler("seekforward", null);
+      navigator.mediaSession.setActionHandler("seekto", null);
+      navigator.mediaSession.setActionHandler("previoustrack", null);
+      navigator.mediaSession.setActionHandler("nexttrack", null);
+    } else {
+      // disable media button support by ignoring the events
+      navigator.mediaSession.setActionHandler("play", () => {});
+      navigator.mediaSession.setActionHandler("pause", () => {});
+      navigator.mediaSession.setActionHandler("stop", () => {});
+      navigator.mediaSession.setActionHandler("seekbackward", () => {});
+      navigator.mediaSession.setActionHandler("seekforward", () => {});
+      navigator.mediaSession.setActionHandler("seekto", () => {});
+      navigator.mediaSession.setActionHandler("previoustrack", () => {});
+      navigator.mediaSession.setActionHandler("nexttrack", () => {});
+    }
+  };
+  setControlsEnabled(controlsEnabled);
+  lockButton.addEventListener("click", () =>
+    setControlsEnabled(!controlsEnabled)
+  );
+  window.__plyr = player;
 
-  return video;
+  return player;
 };
 
 /**
@@ -140,24 +87,26 @@ const createVideoElement = (videoUrl, subtitles) => {
  * @param {number} currentTime
  * @param {boolean} playing
  */
-export const setupVideo = async (videoUrl, subtitles, currentTime, playing) => {
+export const setupVideo = async (
+  videoUrl,
+  subtitles,
+  currentTime,
+  playing,
+  created
+) => {
   document.querySelector("#pre-join-controls").style["display"] = "none";
-  const video = createVideoElement(videoUrl, subtitles);
-  const videoContainer = document.querySelector("#video-container");
-  videoContainer.style.display = "block";
-  videoContainer.appendChild(video);
-
-  video.currentTime = currentTime / 1000.0;
+  const player = createVideoElement(videoUrl, subtitles, created);
+  player.currentTime = currentTime / 1000.0;
 
   try {
     if (playing) {
-      await video.play();
+      player.play();
     } else {
-      video.pause();
+      player.pause();
     }
   } catch (err) {
     // Auto-play is probably disabled, we should uhhhhhhh do something about it
   }
 
-  return video;
+  return player;
 };

@@ -2,6 +2,7 @@ import {
   setDebounce,
   setVideoTime,
   setPlaying,
+  sync,
 } from "./watch-session.mjs?v=bfdcf2";
 import { emojify, findEmojis } from "./emojis.mjs?v=bfdcf2";
 import { linkify } from "./links.mjs?v=bfdcf2";
@@ -164,14 +165,7 @@ const setupChatboxEvents = (socket) => {
             handled = true;
             break;
           case "/sync":
-            const sessionId = window.location.hash.slice(1);
-            const { current_time_ms, is_playing } = await fetch(
-              `/sess/${sessionId}`
-            ).then((r) => r.json());
-
-            setDebounce();
-            setPlaying(is_playing);
-            setVideoTime(current_time_ms);
+            await sync();
 
             const syncMessageContent = document.createElement("span");
             syncMessageContent.appendChild(

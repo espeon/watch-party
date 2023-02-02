@@ -77,4 +77,3 @@ export const pling = () => {
   thirdBeep.start(ctx.currentTime + thirdBeepOffset);
   thirdBeep.stop(ctx.currentTime + (thirdBeepOffset + duration));
 };
-

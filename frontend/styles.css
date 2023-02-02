@@ -25,6 +25,14 @@
     ),
     linear-gradient(var(--bg), var(--bg));
   --accent-transparent: rgba(var(--accent-rgb), 0.25);
+  --plyr-color-main: var(--accent);
+  --plyr-control-radius: 6px;
+  --plyr-menu-radius: 6px;
+  --plyr-menu-background: var(--autocomplete-bg);
+  --plyr-menu-color: var(--fg);
+  --plyr-menu-arrow-color: var(--fg);
+  --plyr-menu-back-border-color: var(--fg-transparent);
+  --plyr-menu-back-border-shadow-color: transparent;
 }
 
 html {
@@ -49,11 +57,41 @@ body {
   flex-direction: column;
 }
 
-video {
-  display: block;
+.lock-controls.plyr__control--pressed svg {
+  opacity: 0.5;
+}
+
+.plyr {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+}
+
+.plyr__menu__container {
+  --plyr-video-control-background-hover: var(--fg-transparent);
+  --plyr-video-control-color-hover: var(--fg);
+  --plyr-control-radius: 4px;
+  --plyr-control-spacing: calc(0.25rem / 0.7);
+  --plyr-font-size-menu: 0.75rem;
+  --plyr-menu-arrow-size: 0;
+  margin-bottom: 0.48rem;
+  max-height: 27vmin;
+  clip-path: inset(0 0 0 0 round 4px);
+  scrollbar-width: thin;
+}
+
+.plyr__menu__container .plyr__control[role="menuitemradio"]::after {
+  left: 10px;
+}
+
+.plyr__menu__container
+  .plyr__control[role="menuitemradio"][aria-checked="true"].plyr__tab-focus::before,
+.plyr__menu__container
+  .plyr__control[role="menuitemradio"][aria-checked="true"]:hover::before {
+  background: var(--accent);
+}
+
+[data-plyr="language"] .plyr__menu__value {
+  display: none;
 }
 
 #video-container {
@@ -131,7 +169,7 @@ input[type="text"] {
   overflow-y: scroll;
 }
 
-button {
+button:not(.plyr button) {
   background-color: var(--accent);
   border: var(--accent);
   border-radius: 6px;
@@ -303,7 +341,7 @@ button.small-button {
   display: none;
 }
 
-.emoji-option {
+.emoji-option:not(:root) {
   background: transparent;
   font-size: 0.75rem;
   text-align: left;

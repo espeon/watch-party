@@ -3,11 +3,11 @@ import {
   setVideoTime,
   setPlaying,
   sync,
-} from "./watch-session.mjs?v=bfdcf2";
-import { emojify, findEmojis } from "./emojis.mjs?v=bfdcf2";
-import { linkify } from "./links.mjs?v=bfdcf2";
-import { joinSession } from "./watch-session.mjs?v=bfdcf2";
-import { pling } from "./pling.mjs?v=bfdcf2";
+} from "./watch-session.mjs?v=4b61c4";
+import { emojify, findEmojis } from "./emojis.mjs?v=4b61c4";
+import { linkify } from "./links.mjs?v=4b61c4";
+import { joinSession } from "./watch-session.mjs?v=4b61c4";
+import { pling } from "./pling.mjs?v=4b61c4";
 import { state } from "./state.mjs";
 
 function setCaretPosition(elem, caretPos) {

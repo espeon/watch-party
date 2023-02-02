@@ -1,4 +1,4 @@
-import { joinSession } from "./watch-session.mjs?v=bfdcf2";
+import { joinSession } from "./watch-session.mjs?v=4b61c4";
 import { state } from "./state.mjs";
 
 /**

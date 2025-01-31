@@ -111,12 +111,15 @@ async fn main() {
             },
         );
 
+    let frontend_path = std::env::var("FRONTEND_PATH").unwrap_or_else(|_| "react/dist".to_string());
+
     let routes = start_session_route
         .or(get_status_route)
         .or(ws_subscribe_route)
         .or(get_emoji_route)
-        .or(warb::path::end().and(warb::fs::file("frontend/index.html")))
-        .or(warb::fs::dir("frontend"));
+        .or(warb::path::end().and(warb::fs::file(format!("{}/index.html", frontend_path))))
+        .or(warb::fs::dir(frontend_path))
+        .or(warb::fs::file("react/dist/index.html"));
 
     let ip = std::env::var("IP")
         .ok()
